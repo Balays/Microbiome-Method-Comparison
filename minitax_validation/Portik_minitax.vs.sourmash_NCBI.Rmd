@@ -1,0 +1,1837 @@
+---
+title: "Portiek et al PacBIO: minitax vs sourmash & NCBI vs proGenomes"
+author: Balázs Kakuk
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 3
+    toc_float: TRUE
+    number_sections: TRUE
+
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 90% !important;
+      width: 90% !important;
+    }
+    body {
+      max-width: 90% !important;
+      margin-left: auto;
+      margin-right: auto;
+    }
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = 'center', fig.height = 10, fig.width = 30, warning = F, message = F, error = F)
+library(tidyverse)
+library(ggpubr)
+library(factoextra)
+library(FactoMineR)
+library(ggrepel)
+library(phyloseq, quietly = T)
+library(DESeq2)
+library(data.table)
+library(ggsci)
+library(hrbrthemes)
+library(ggh4x)
+library(RColorBrewer)
+library(stringr); library(stringi)
+
+#### Own functions
+
+misc.dir    <- 'E:/my.R.packages/Rlyeh-main'
+minitax.dir <- 'E:/my.R.packages/minitax/R'
+
+if (.Platform$OS.type!="windows") {
+  
+  misc.dir  <- paste0('/mnt/', gsub(':', '/', tolower(gsub('/.*', '', misc.dir))), 
+                      stri_replace_first_regex(misc.dir, '.*:\\/', '')
+  )
+  
+  minitax.dir  <- paste0('/mnt/', gsub(':', '/', tolower(gsub('/.*', '', minitax.dir))), 
+                         stri_replace_first_regex(minitax.dir, '.*:\\/', '')
+  )
+  
+} 
+
+for(f in list.files(misc.dir,    '*.R', full.names = T)) { try({source(f)}) }
+for(f in list.files(minitax.dir, '*.R', full.names = T)) { try({source(f)}) }
+
+bam.flags <- read.delim(paste0(misc.dir, '/bam.flags.tsv'))
+#### ####
+
+
+### General settings
+
+filt.version <- ''
+filtering    <- ''
+writetables  <- T
+save.Figs    <- F
+res.dir      <- 'HiFi_minitax.vs.sourmash'; dir.create(res.dir)
+#platforms <- c('illumina', 'PacBIO')
+
+## color palette
+alpha   <- 0.9
+pal.man <- c(brewer.pal(7, 'Set1'), brewer.pal(8, 'Accent')[c(1,2,6)], brewer.pal(8, 'Set2')[c(1,3,5,6,7)], brewer.pal(8, 'Dark2') )
+pal.man <- c(colorvec[c(8,32,12:14,17,24,1:2,4,7,5,6,3,10,11,27:28,9,29)], 'grey', 'black')
+pal.man <- alpha(c(pal.man, pal.man), alpha)
+
+## taxonomic ranks
+ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+
+### minitax settings
+## Databse
+db <- 'all_NCBI_genomes'
+db.dir <- 'E:/data/databases/all_NCBI_genomes'
+## Genome Size normalization?
+NormToGenomeSize <- F
+NormFunction     <- 'mean'
+## MAPQ filtering ?
+mapq.filt <- NA # 1:59 #  
+## Filtering samples
+filter.samples.pattern <- 'LCA|Undetermined|SpeciesEstimate'  ### filter out LCA method
+
+### comparison settings
+## Exclude unclassified reads?
+exclude.unclass <- T
+
+abund.threshold <- 10
+
+## calculate correlation from top20 or from all taxa?
+correl <- 'topN'
+
+## Fix taxa
+crop_taxa <- NULL # 'Veillonella rogosae|Prevotella corporis'
+
+genera_to_glom <- data.frame(glom= c('Veillonella', 'Faecalibacterium', 'Prevotella'),
+                           to  = c('Veillonella rogosae','Faecalibacterium prausnitzii', 'Prevotella corporis')) ## NULL
+species_to_glom <- data.frame(glom= c('Bacteroides fragilis', 'Bacteroides fragilis CAG:47', 'Bacteroides fragilis_A'),
+                           to  = c('Bacteroides fragilis')) ## NULL
+
+
+### Gold Standard Settings
+add.GS.taxa <- T ## add all GS taxa to the barplots and the correlation plots?
+zymo.GS <- read_delim('E:/data/databases/zymo/zymo_6331_composition.txt')
+GS_name <- 'Zymo_6331'
+GS_nr   <- 1
+just_GS <- T
+vars <- ('project') # c('DNA_isolation_method', 'db', 'workflow', 'method', 
+glom_spec <- T ## glomerate strains from the same species in  the GS?
+consider.euk <- T
+count_multiplier <- 100000
+count_colname    <- 'Genome Copy'
+
+```
+
+*Comparison of minitax ('BestAln' method) on proGenomes_2, and proGenomes_3 (Host-associated & All representatives) and all NCBI genomes databases with sourmash (k-31) on all NCBI genomes database using  Zymo MCM D6331 PacBio Hifi WGS sequencing data (reported in Portik et al 2022)*
+
+
+# Notes
+
+- In minitax, reads *WERE NOT* filtered for MAPQ
+- In minitax, results *WERE NOT* normalized to Genome Size
+- Unclassified reads *WERE NOT* excluded
+- Eukaryotes *WERE NOT* excluded from the analysis
+- The Gold Standard (Theoretical composition) was: *Zymo 6331*
+- The taxonomic lineage of the Gold Standard was taken from *NCBI*
+- All species from *Veillonella*, *Faecalibacterium* and *Prevotella* were counted towards *Veillonella rogosae*, *Faecalibacterium prausnitzii* and *Prevotella corporis*, respectively.
+- *Bacteroides fragilis*, *Bacteroides fragilis CAG:47* and *Bacteroides fragilis_A* were counted towards *Bacteroides fragilis*
+- The correlations (*r2* values) were calculated from the *top20* taxa
+
+- *IS THE PROGENOMES HERE REQUIRED? IT HAS NO EUKARYOTES!*
+
+```{r, Import minitax data}
+if (all(is.na(mapq.filt))) {
+  
+  load("minitax_Portik_etal_2022_PacBio_WGS_all_NCBI_genomes/minitax_Portik_etal_2022_PacBio_WGS_all_NCBI_genomes.nofilt_PS.RData")
+  ps.ncbi  <- ps.minitax.comb
+  
+  #load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_2/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_2.nofilt_PS.RData")
+  #ps.prog2 <- ps.minitax.comb
+  
+  #load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.host/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.host.nofilt_PS.RData")
+  #ps.prog3.host <- ps.minitax.comb
+  
+  #load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.repres/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.repres.nofilt_PS.RData")
+  #ps.prog3.repres <- ps.minitax.comb
+  
+  
+} else {
+  
+  #load("minitax_Portik_etal_2022_PacBio_WGS_all_NCBI_genomes/minitax_Portik_etal_2022_PacBio_WGS_all_NCBI_genomes.MAPQ.filt_PS.RData")
+  #ps.ncbi  <- ps.minitax.comb
+  
+  load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_2/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_2.MAPQ.filt_PS.RData")
+  ps.prog2 <- ps.minitax.comb
+  
+  load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.host/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.host.MAPQ.filt_PS.RData")
+  ps.prog3.host <- ps.minitax.comb
+  
+  #load("minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.repres/minitax_Portik_etal_2022_PacBio_WGS_proGcontigs_3.MAPQ.filt_PS.RData")
+  #ps.prog3.repres <- ps.minitax.comb
+  
+}
+
+
+#### Fix Akkermansia muciniphila in NCBI
+if (exists('ps.ncbi')) {
+  archetype <- grep('Akkermansia', taxa_names(ps.ncbi), value = T)[1]
+  if(!is.na(archetype)) {
+    ps.ncbi.m <- phyloseq::merge_taxa(ps.ncbi, grep('Akkermansia', taxa_names(ps.ncbi), value=T), 1)
+    
+    otutab   <- data.frame(otu_table(ps.ncbi.m))
+    taxtab   <- data.frame(tax_table(ps.ncbi.m))
+  
+    taxtab$species  [rownames(taxtab) ==  archetype ] <- 'Akkermansia muciniphila'
+    rownames(taxtab)[rownames(taxtab) ==  archetype ] <- 'Akkermansia muciniphila'
+    rownames(otutab)[rownames(otutab) ==  archetype ] <- 'Akkermansia muciniphila'
+  
+    ps.ncbi <- phyloseq(tax_table(as.matrix(taxtab)),
+                        otu_table(as.matrix(otutab), taxa_are_rows = T),
+                        sample_data(ps.ncbi))
+  }
+}
+
+
+#### Fix Lactobacillus in proGenomes_2
+if (exists('ps.prog2')) {
+  otutab   <- data.frame(otu_table(ps.prog2))
+  taxtab   <- data.frame(tax_table(ps.prog2))
+  
+  rownames(taxtab)[taxtab$species   ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus fermentum'
+  taxtab$genus    [taxtab$species   ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus'
+  taxtab$species  [taxtab$species   ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus fermentum'
+  rownames(otutab)[rownames(otutab) ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus fermentum'
+  
+  ps.prog2 <- phyloseq(tax_table(as.matrix(taxtab)),
+                       otu_table(as.matrix(otutab), taxa_are_rows = T),
+                       sample_data(ps.prog2))
+}
+
+
+#### Merge minitax results
+ps.minitax.comb <- merge_phyloseq(ps.ncbi
+                                  #ps.prog2,
+                                 #ps.prog3.repres,
+                                  #ps.prog3.host
+                                 )
+ 
+
+ps.all <- ps.minitax.comb
+metadata <- sample_data(ps.all)
+
+```
+
+
+```{r, Filtering}
+
+if (!all(is.na(filter.samples.pattern))) {
+  samples.to.keep <- grep(filter.samples.pattern,
+                          sample_names(ps.all), invert = T, 
+                          value = T)
+  ps.all  <- prune_samples(samples.to.keep, ps.all)
+}
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+
+
+```
+
+
+```{r, Database import}
+# altough *Lactobacillus fermentum* was changed to *Limosilactobacillus fermentum* 
+  
+#### Database import ####
+
+if (db == 'proGcontigs_2') {
+  prog.db <- fread(paste0(db.dir, '/proGenomes2.1_specI_lineageNCBI.tab'), header = F)
+  colnames(prog.db) <- c("genome", "superkingdom", "phylum", "class", "order", "family", "genus", "species")
+  prog.db <- data.frame(taxid=gsub('\\..*', '', prog.db$genome  ), prog.db)
+  ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+  prog.db$taxid <- as.integer(prog.db$taxid)
+  
+  prog.db[,ranks]  <- as.data.frame(apply(prog.db[,ranks], 2, function(x) str_replace(as.character(unlist(x)),  pattern = "^\\d+\\s", replacement = "")))
+  
+  prog.gt <- gather(prog.db, rank, taxon, -c(1:2))
+  prog.db.spec.uni <- unique.data.frame(prog.db[,ranks])
+  
+  db.data <- prog.db
+  db.name <- db
+  
+  prog.db.uni     <- db.data %>% distinct(across(all_of(c('taxid', ranks)))) #unique.data.frame(db.data[,c('taxid', ranks)])
+  db.uni.data     <- prog.db.uni
+
+   if (NormToGenomeSize) {
+    genome_sizes <- as.data.frame(fread(paste0(db.dir, '/proGenomes2.1_specI_lineageNCBI.genomesize.tab')))
+    genome_sizes[genome_sizes == ''] <- NA
+    genome_sizes[,ranks]  <- 
+      as.data.frame(apply(genome_sizes[,ranks], 2, 
+                          function(x) str_replace(as.character(unlist(x)),  pattern = "^\\d+\\s", replacement = "")))
+  }
+  
+  db.uni.ranks <- unique.data.frame(db.uni.data[,ranks])
+  
+  #### Fix Lactobacillus in proGenomes_2
+  db.uni.ranks$genus  [db.uni.ranks$species ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus'
+  db.uni.ranks$species[db.uni.ranks$species ==  'Lactobacillus fermentum' ] <- 'Limosilactobacillus fermentum'
+
+} else if (db=="all_NCBI_genomes") {
+  
+  #db.data     <- fread(paste0(db.dir, "/NCBI.db.tsv"), header = T)
+  db.uni.data <- fread(paste0(db.dir, "/NCBI.db.uni.tsv"), header = T)
+  db.uni.data <- unique(db.uni.data[,..ranks])
+  db.uni.data[db.uni.data == ''] <- NA
+
+  if (NormToGenomeSize) {
+    genome_sizes <- as.data.frame(fread(paste0(db.dir, '/NCBI.db.genomesize.tsv')))
+    genome_sizes[genome_sizes == ''] <- NA
+  }
+  
+  
+  #### Fix Akkermansia municiphila
+  db.uni.data <- data.table(plyr::rbind.fill(db.uni.data,
+    setNames(data.frame(
+      rbind(c('Bacteria', 'Verrucomicrobia', 'Verrucomicrobiae', 'Verrucomicrobiales', 'Akkermansiaceae', 'Akkermansia', 'Akkermansia muciniphila'))),
+             ranks)
+  ))
+}
+
+```
+
+
+```{r, Genome Size Normalization}
+#a simple linear normalization (i.e., dividing the read counts by genome length) is #commonly used, but it makes a significant assumption. It assumes that each genome is #present in the sample in a single copy, which is not always the case,
+
+if(NormToGenomeSize) {
+  if(NormFunction == 'mean') {
+    genome_sizes <- genome_sizes %>% group_by(across(all_of(ranks))) %>%
+      summarise(genome_mean_size =mean(genome_size))
+  }
+  if(n_distinct(genome_sizes$species) == nrow(genome_sizes)) {
+    genome_sizes <- genome_sizes[,c('species', 'genome_mean_size')]
+  } else { stop() }
+  
+  genome_sizes <- merge(genome_sizes, otutab, by.y=0, by.x='species', all.y=T)
+  genome_sizes$genome_mean_size <- genome_sizes$genome_mean_size / 1000000
+  
+  genome_sizes$genome_mean_size[is.na(genome_sizes$genome_mean_size)] <- 1
+  
+  genome_sizes[,-c(1:2)] <- lapply(
+    genome_sizes[,-c(1:2)], 
+    function(col) round(col / genome_sizes$genome_mean_size, 0 ))
+  
+  otutab <- data.frame(genome_sizes[,-c(1:2)], row.names = genome_sizes$species)
+  otu_table(ps.all) <- otu_table(as.matrix(otutab), taxa_are_rows = T)
+
+  colSums(otutab)
+ 
+  otutab   <- data.frame(otu_table(ps.all))
+  taxtab   <- data.frame(tax_table(ps.all))
+  metadata <- data.frame(sample_data(ps.all))
+
+}
+```
+
+
+```{r, Import sourmash data (KRONA), eval=F}
+ps <- readRDS("E:/data/Portik_etal_2022/sourmash.NCBI_PS.rds")
+ps.sourmash.NCBI <- ps
+
+ps <- readRDS("E:/data/Portik_etal_2022/sourmash.proG_PS.rds")
+ps.sourmash.proG_2 <- ps
+sample_data(ps.sourmash.proG_2)$db <- 'proGcontigs_2'
+
+ps.sourmash <- merge_phyloseq(ps.sourmash.NCBI, 
+                              ps.sourmash.proG_2)
+sample_data(ps.sourmash)$method <- 'sourmash'
+
+# sample_data(ps.sourmash)
+
+```
+
+
+```{r, Import sourmash data (Kreport), eval=T}
+ps.sourmash <- readRDS('ps.portik.sourmash.RDS')
+
+ps.sourmash@sam_data$platform <- 'PacBio'
+ps.sourmash@sam_data$Vregion  <- 'WGS'
+ps.sourmash@sam_data$db       <- c('all_NCBI_genomes', 'proGcontigs_2')
+
+ps.sourmash <- prune_samples(rownames(ps.sourmash@sam_data[ps.sourmash@sam_data$db == 'all_NCBI_genomes']),
+                             ps.sourmash)
+
+```
+
+
+```{r, Merge sourmash with minitax}
+
+ps.all <- merge_phyloseq(ps.all, 
+                         ps.sourmash)
+
+ps.all@sam_data$sample_name <- ps.all@sam_data$sample
+
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+metadata <- data.frame(sample_data(ps.all))
+
+```
+
+
+```{r, Exclude unclassified reads}
+
+if (exclude.unclass) {
+  otutab <- otutab[rownames(otutab) != 'unclassified', ]
+  taxtab <- taxtab[rownames(taxtab) != 'unclassified', ]
+  
+  ps.all   <- phyloseq(otu_table(as.matrix(otutab), taxa_are_rows = T),
+                       tax_table(as.matrix(taxtab)),
+                       sample_data(metadata))
+
+}
+
+```
+
+
+```{r, Exclude taxa below a threshold}
+
+
+if (!is.na(abund.threshold)) {
+  
+  taxtab <- taxtab[rowSums(otutab)  >= abund.threshold, ]
+  otutab <- otutab[rowSums(otutab)  >= abund.threshold, ]
+  
+  ps.all   <- phyloseq(otu_table(as.matrix(otutab), taxa_are_rows = T),
+                       tax_table(as.matrix(taxtab)),
+                       sample_data(metadata))
+
+}
+
+```
+
+
+```{r, Fix sample names and metadata, eval=F}
+metadata <- sample_data(ps.all)
+
+## Fix sample names
+metadata$sample   <- gsub('1I', '3',  metadata$sample)
+metadata$sample   <- gsub('2I', '4',  metadata$sample)
+metadata$sample   <- gsub('_S.*', '', metadata$sample)
+
+
+## Add further metadata
+metadata <- data.frame(metadata,
+                       sequencing_date = '2022111104',
+                       #Vregion         = 'V1_2',
+                       DNA_isolation_method = stri_extract_last_regex(metadata$sample, paste0(c('MN', 'Q', 'Z', 'I'), collapse = '|')),
+                       #sample_name   = stri_extract_first_regex(metadata$sample, paste0(metadata$sample, '[0123456789]') ),
+                       sample_nr     = as.integer(gsub('[^0123456789]', '', metadata$sample))
+)
+metadata$DNA_isolation_method <- factor(metadata$DNA_isolation_method)
+metadata$Vregion <- factor(metadata$Vregion)
+metadata$sample_name <- factor(metadata$sample)
+metadata$sequencing_date <- factor(metadata$sequencing_date)
+
+## regenerate sample names
+IDcols <- c("sample_name", "sequencing_date", "workflow", "db", "method")
+metadata <- unite(metadata, sample, IDcols, sep='_', remove = F, na.rm = T)
+rownames(metadata) <- metadata$sample
+
+## Update PS object
+sample_names(ps.all) <- metadata$sample
+ps.all@sam_data      <- sample_data(metadata)
+
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+```
+
+
+```{r, omit tax.identity from PS objects}
+
+ps.all@tax_table <- tax_table(ps.all)[,ranks]
+
+taxtab   <- data.frame(tax_table(ps.all))
+```
+
+
+```{r, NA to unclassified}
+
+taxtab[is.na(taxtab)] <- 'unclassified'
+
+ps.all   <- phyloseq(otu_table(as.matrix(otutab), taxa_are_rows = T),
+                     tax_table(as.matrix(taxtab)),
+                     sample_data(metadata))
+
+taxtab   <- data.frame(tax_table(ps.all))
+```
+
+
+*Limosilactobacillus fermentum* in the theoretical composition was changed to *Lactobacillus fermentum*
+```{r, Import Theoretical Composition}
+###
+#zymo.GS[,count_colname] <- as.numeric(zymo.GS[,count_colname])
+
+colnames(zymo.GS)[1] <- 'species'
+zymo.GS <- zymo.GS[,c('species', count_colname)]
+colnames(zymo.GS)[2] <- 'count'
+
+zymo.GS <- zymo.GS[zymo.GS$count > 0, ]
+
+zymo.GS$count <- zymo.GS$count * count_multiplier
+
+## summarise on species-level (mainly because of Eschericia strains)
+if(glom_spec) {
+  zymo.GS$strain  <- zymo.GS$species
+  zymo.GS$species <- gsub(' \\(.*', '', zymo.GS$species)
+  zymo.GS <- zymo.GS[,] %>% 
+    group_by(species) %>%
+    summarise(count=sum(count))
+  
+}
+
+
+if(!is.null(crop_taxa)) {
+  zymo.GS <- zymo.GS[grep(crop_taxa, zymo.GS$species, invert = T),]
+}
+
+zymo.GS <- as.data.frame(merge(db.uni.data,  zymo.GS, by='species', all.y=T))
+if(!consider.euk) { ## will be done later
+  zymo.GS <- zymo.GS[
+    #zymo.GS$superkingdom != 'Eukaryota'
+    #grep('Saccharomyces|Candida|Cryptococcus', zymo.GS$species, invert = T)
+    ,]
+}
+
+mtgs <- unique.data.frame(as.data.frame(metadata[,vars])); colnames(mtgs) <- vars
+mtgs$sample_name <- GS_name
+mtgs <- unite(mtgs, 'sample', c('sample_name', vars), remove = F)
+rownames(mtgs) <- mtgs$sample
+
+taxtab.gs <- zymo.GS[,ranks]
+rownames(taxtab.gs) <- taxtab.gs[,'species']
+
+otutab.gs <- setNames(data.frame(replicate(length(mtgs$sample), zymo.GS$count, simplify = FALSE), row.names = rownames(taxtab.gs)), mtgs$sample)
+
+ps.gsa <- phyloseq(otu_table(as.matrix(otutab.gs), taxa_are_rows = T), 
+                   tax_table(as.matrix(taxtab.gs)), 
+                   sample_data(mtgs))
+
+```
+
+
+```{r, eval=FALSE}
+metadata.gs         <- metadata[1:GS_nr, ]
+metadata.gs$project <- GS_name
+
+metadata.gs <- unite(metadata.gs, 'sample', vars, remove = F)
+metadata.gs[,c('sample', vars)]
+
+metadata.gs$sample_name <- GS_name
+metadata.gs$sample_nr   <- GS_name
+
+rownames(metadata.gs) <- metadata.gs$sample
+
+if(just_GS) {
+  metadata.gs[,] <- GS_name
+}
+metadata.gs$sample <- rownames(metadata.gs)
+
+otutab.gs <- data.frame(NULL)
+for (i in 1:nrow(metadata.gs)) {
+  otutab.gs <- plyr::rbind.fill(otutab.gs, data.frame(zymo.GS, sample=metadata.gs$sample[i]))
+}
+otutab.gs <- as.data.frame(otutab.gs[,c('species', 'count', 'sample')] %>% spread(sample, count, fill=0))
+rownames(otutab.gs) <- otutab.gs[,1]
+
+otutab.gs <- otutab.gs %>% select(any_of(metadata.gs$sample))
+
+taxtab.gs <- zymo.GS[,ranks]
+rownames(taxtab.gs) <- taxtab.gs[,'species']
+
+ps.gsa <- phyloseq(otu_table(as.matrix(otutab.gs), taxa_are_rows = T), 
+                   tax_table(as.matrix(taxtab.gs)), 
+                   sample_data(metadata.gs))
+```
+
+
+```{r, Merge GS with observed data}
+ps.all <- merge_phyloseq(ps.all, ps.gsa)
+
+cols <- colnames(metadata)[!is.element(colnames(metadata), c('sample', vars))]
+
+ps.all@sam_data[ps.all@sam_data$sample_name == GS_name, cols] <- GS_name
+
+#sample_data(ps.all)$DNA_isolation_method <- ''
+#sample_data(ps.all)$sequencing_date      <- ''
+
+ps <- ps.all
+
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+metadata <- data.frame(sample_data(ps.all))
+
+```
+
+
+```{r, Omit Eukaryotes?}
+
+if(!consider.euk) {
+  taxtab      <- data.frame(tax_table(ps.all))
+  taxatoprune <- rownames(taxtab)[!is.element(taxtab$superkingdom, 'Eukaryota') & !is.na(taxtab$superkingdom)]
+  ps.all      <- prune_taxa(taxatoprune, ps.all)
+  
+}
+
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+metadata <- data.frame(sample_data(ps.all))
+
+```
+
+
+```{r, Fix genera}
+
+
+if(!is.null(genera_to_glom)) {
+  
+  ## Glomerate several taxa from the same genus
+  ps.all <- glom_sub_taxa(ps.all, genera_to_glom$glom, 6, F)
+  
+  ## Change the species name of these to the desired
+  taxtab <- data.frame(tax_table(ps.all))
+  
+  for (i in 1:nrow(genera_to_glom)) {
+    glom   <- genera_to_glom[i, 'glom']
+    to     <- genera_to_glom[i, 'to']
+    taxtab$species[is.element(taxtab$genus, glom)] <- to
+  }
+  
+  ps.all@tax_table <- tax_table(as.matrix(taxtab))
+  taxtab <- data.frame(tax_table(ps.all))
+}
+
+##
+
+
+```
+
+```{r, Fix species}
+
+if(!is.null(species_to_glom)) {
+  taxtab <- data.frame(tax_table(ps.all))
+  for (i in 1:nrow(species_to_glom)) {
+   taxtab[rownames(taxtab) == species_to_glom$glom[i], 'species'] <- species_to_glom$to[i]
+  }
+  ps.all@tax_table <- tax_table(as.matrix(taxtab))
+  taxtab <- data.frame(tax_table(ps.all))
+}
+
+##
+
+```
+
+
+# Detection Statistics based on Taxa presence/absence on different levels
+
+
+- Precision= true positives /(true positives + false positives) \n
+- Recall= true positives /(true positives + false negatives) \n
+- F1=(2∗ precision ∗ recall)/(precision + recall) \n
+- F0.5=((1+0.52)∗ precision ∗ recall)/((0.52∗ precision)+ recall) \n
+
+```{r, Calculate detection stats for Species}
+detect.tresh.ratios <- c(0.01, 0.001, 0.0001)  # -->> 0.1 %
+
+otutab.gsa      <-  data.frame(taxon=taxa_names(ps.gsa), otu_table(ps.gsa))
+otutab.gsa      <-  otutab.gsa[,1:2]
+otutab.gsa[,2]  <- (otutab.gsa[,2] / sum(otutab.gsa[,2], na.rm=T)) * 100
+all.sample.stat.df <- data.frame(NULL)
+
+ps <- ps.all
+samples <- grep(GS_name, sample_names(ps), invert = T, value = T)
+sample  <- samples[1]
+for (sample in samples) {
+  ps.sub         <- prune_samples(sample, ps)
+  otutab.sub     <- data.frame(taxon=taxa_names(ps), otu_table(ps.sub))
+  
+  ## Calculate staitstics for each Detection threshold
+  sample.stat.df <- data.frame(NULL)
+  for (detect.tresh.ratio in detect.tresh.ratios) {
+    detect.tresh   <- detect.tresh.ratio * sum(otutab.sub[,sample])
+    
+    otutab.sub.det <- as.data.frame(otutab.sub[otutab.sub[,2] > detect.tresh,])  #; colnames(otutab.sub.det)[2] <- sample
+    
+    otutab.sub.det[,sample] <- (otutab.sub.det[,sample] / sum(otutab.sub.det[,sample], na.rm=T)) * 100
+    
+    ## Merge Estimated abundances with Theoretical
+    otutab.sub.merge <- merge(otutab.sub.det, otutab.gsa, by='taxon', all=T)
+    ## COL 2 -->> Estimated
+    ## COL 3 -->> Theoretical
+    
+    ## Set abundance to 0
+    otutab.sub.merge[is.na(otutab.sub.merge[,2]), 2] <- 0
+    otutab.sub.merge[is.na(otutab.sub.merge[,3]), 3] <- 0
+    
+    ## Taxa presence / absence : count TP, FP and FN
+    TP               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] >  0 & otutab.sub.merge[,3] >  0, ])
+    FP               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] >  0 & otutab.sub.merge[,3] == 0, ])
+    FN               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] == 0 & otutab.sub.merge[,3] >  0, ])
+    
+    ## Absolute and Relative Error, for Theoretical and Measured abundance comparison
+    otutab.sub.merge$Abs_Error <- abs(otutab.sub.merge[,3] - otutab.sub.merge[,2])
+    otutab.sub.merge$Rel_Error <- 100 * (otutab.sub.merge$Abs_Error / otutab.sub.merge[,3])
+    
+    ## Chi statistic for Chi-squared test
+    otutab.sub.merge$Chi_stat <- otutab.sub.merge$Abs_Error^2 / otutab.sub.merge[,3]
+    
+    ## L1 (Manhattan) distance is the sum of Absoulte Errors
+    ## Chi-squared statistic is the sum of the squared differences
+    
+    ## For True Positives
+    distance_TP_sample  <- otutab.sub.merge[otutab.sub.merge[,3] != 0, ]
+    distance_TP_sample  <- plyr::rbind.fill(distance_TP_sample, data.frame(rbind(colSums(distance_TP_sample[,-1], na.rm=T))))
+    distance_TP_sample[nrow(distance_TP_sample), 1] <- 'Error_Sum'
+    
+    ## Calculate the same for False Positives
+    distance_FP_sample     <- otutab.sub.merge[otutab.sub.merge[,2] !=0 &  otutab.sub.merge[,3] == 0, ]
+    distance_FP_sample     <- plyr::rbind.fill(distance_FP_sample, data.frame(rbind(colSums(distance_FP_sample[,-1], na.rm=T))))
+    distance_FP_sample[nrow(distance_FP_sample), 1] <- 'Error_Sum'
+   
+    ## Cary out Chi-squared test
+    Chi_stat <- distance_TP_sample[nrow(distance_TP_sample), 'Chi_stat']
+    ## Degrees of Freedom
+    df       <- nrow(distance_TP_sample) - 1
+    ## P-value
+    p_value <- 1 - pchisq(Chi_stat, df)
+    ## Bonferroni Correction:
+    p.value_thresh <- 0.05 / nrow(distance_TP_sample)
+
+    if (p_value < p.value_thresh) {
+      chi_sig <- T
+      #cat("Reject the null hypothesis: Observed distribution is significantly different from the theoretical distribution.\n")
+    } else {
+      chi_sig <- F
+      #cat("Fail to reject the null hypothesis: Observed distribution is not significantly different from the theoretical distribution.\n")
+    }
+    
+    ## Detection metrics
+    Precision <- TP/(TP + FP)
+    Recall    <- TP/(TP + FN)
+    ## F-scores
+    F1        <- (2 * Precision * Recall) / (Precision + Recall)
+    F0.5      <- (( 1 + 0.5^2) * Precision * Recall ) / ((0.5^2 * Precision) + Recall)
+    ## 
+    stat.df        <- data.frame(sample=sample, Detection_threshold_ratio=detect.tresh.ratio, Detection_threshold=detect.tresh,
+                                 True_positives=TP, False_positives=FP, False_negatives=FN,
+                                 Precision=Precision, Recall=Recall, F1=F1, F0.5=F0.5, 
+                                 Chi_stat=Chi_stat, Chisq.test.p_value=p_value, Chisq.test.sign=chi_sig)
+    sample.stat.df <- plyr::rbind.fill(stat.df, sample.stat.df)
+  }
+  
+  all.sample.stat.df <- plyr::rbind.fill(all.sample.stat.df, sample.stat.df)
+}
+
+all.sample.stat.df <- merge(sample_data(ps), all.sample.stat.df, by.y='sample', by.x=0)
+ 
+all.sample.stat.df.gt <- all.sample.stat.df %>% gather(statistic, value, -c(1:(ncol(sample_data(ps))+3)))
+all.sample.stat.df.gt$Detection_threshold_percent <- factor(paste0(as.character(all.sample.stat.df.gt$Detection_threshold_ratio * 100), '%'))
+
+all.species.stat.df <- data.frame(all.sample.stat.df.gt, level='Species')
+
+```
+
+
+```{r, Plot Species Detection stats, fig.width=10, fig.height=12}
+gg.01 <- ggplot(
+  all.sample.stat.df.gt[
+    all.sample.stat.df.gt$Detection_threshold_ratio == detect.tresh.ratios[1]
+  & !is.element(all.sample.stat.df.gt$statistic, c('True_positives', 'False_positives', 'False_negatives', 'Chi_stat', 'Chisq.test.p_value', 'Chisq.test.sign'))
+    , ]) +
+    geom_col(aes(x=workflow, y=value, fill=method), position=position_dodge2()) +
+    #geom_jitter(aes(x=workflow, y=value, color=DNA_isolation_method)) +
+    #geom_point(aes(x=workflow, y=value, color=statistic)) +
+  scale_fill_manual(values = pal.man) +
+  coord_cartesian(ylim = c(0,1)) +
+  theme_ipsum() +
+  facet_nested(cols=vars(db), rows=vars(statistic), scales = 'free_x') +
+  ggtitle(paste0('Detection_threshold_ratio: ', detect.tresh.ratios[1]*100, '%'))
+   
+gg.001 <- ggplot(
+  all.sample.stat.df.gt[
+    all.sample.stat.df.gt$Detection_threshold_ratio == detect.tresh.ratios[2]
+  & !is.element(all.sample.stat.df.gt$statistic, c('True_positives', 'False_positives', 'False_negatives', 'Chi_stat', 'Chisq.test.p_value', 'Chisq.test.sign'))
+    , ]) +
+    geom_col(aes(x=workflow, y=value, fill=method), position=position_dodge2()) +
+    #geom_jitter(aes(x=workflow, y=value, color=DNA_isolation_method)) +
+    #geom_point(aes(x=workflow, y=value, color=statistic)) +
+  scale_fill_manual(values = pal.man) +
+  coord_cartesian(ylim = c(0,1)) +
+  theme_ipsum() +
+  facet_nested(cols=vars(db), rows=vars(statistic), scales = 'free_x') +
+  ggtitle(paste0('Detection_threshold_ratio: ', detect.tresh.ratios[2]*100, '%'))
+
+gg.0001 <- ggplot(
+  all.sample.stat.df.gt[
+    all.sample.stat.df.gt$Detection_threshold_ratio == detect.tresh.ratios[2]
+  & !is.element(all.sample.stat.df.gt$statistic, c('True_positives', 'False_positives', 'False_negatives', 'Chi_stat', 'Chisq.test.p_value', 'Chisq.test.sign'))
+    , ]) +
+    geom_col(aes(x=workflow, y=value, fill=method), position=position_dodge2()) +
+    #geom_jitter(aes(x=workflow, y=value, color=DNA_isolation_method)) +
+    #geom_point(aes(x=workflow, y=value, color=statistic)) +
+  scale_fill_manual(values = pal.man) +
+  coord_cartesian(ylim = c(0,1)) +
+  theme_ipsum() +
+  facet_nested(cols=vars(db), rows=vars(statistic), scales = 'free_x') +
+  ggtitle(paste0('Detection_threshold_ratio: ', detect.tresh.ratios[3]*100, '%'))
+
+
+gg.stats <- cowplot::plot_grid(gg.01, gg.001, gg.0001, ncol=1)
+
+
+### Detection level: 1%
+
+#gg.01
+
+
+### Detection level: 0.1%,
+
+#gg.001
+
+
+### Detection level: 0.01%
+
+#gg.0001
+```
+
+
+```{r, fig.width=32, fig.height=18}
+gg.ds <- ggplot(
+  all.sample.stat.df.gt[
+    #all.sample.stat.df.gt$Detection_threshold_ratio == detect.tresh.ratios[2] &
+   !is.element(all.sample.stat.df.gt$statistic, c('True_positives', 'False_positives', 'False_negatives', 'Chi_stat', 'Chisq.test.p_value', 'Chisq.test.sign'))
+    , ]) +
+    geom_col(aes(x=method, y=value, fill=db), position=position_dodge2()) +
+    #geom_jitter(aes(x=workflow, y=value, color=DNA_isolation_method)) +
+    #geom_point(aes(x=workflow, y=value, color=statistic)) +
+  scale_fill_manual(values = pal.man) +
+  coord_cartesian(ylim = c(0,1)) +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle = -60)) +
+  facet_nested(cols=vars(Detection_threshold_percent, workflow, method), 
+               rows=vars(statistic), scales = 'free') +
+  ggtitle(paste0('Species Detection Statistics'))
+
+gg.ds
+
+```
+
+
+```{r, Correlation of Precision and Recall, fig.width=15, fig.height=14, eval=F}
+sum.sample.stat.df.gt <- all.sample.stat.df.gt %>% 
+  group_by(workflow, db, Detection_threshold_percent, statistic) %>%
+  reframe(mean_stat=mean(value), sd_stat=sd(value))
+  
+plot.data <- sum.sample.stat.df.gt[is.element(sum.sample.stat.df.gt$statistic, c('Precision', 'Recall')),] %>% 
+  gather(sum_stat, value, -c(1:4)) #%>% spread(statistic, value)
+plot.data$stat <- paste0(plot.data$statistic, '_', plot.data$sum_stat)
+plot.data$stat <- gsub('_stat', '', plot.data$stat)
+plot.data      <- plot.data[,c(1:3,6,7)] %>% spread(stat,value)
+
+
+gg.statsum <- ggplot(plot.data) +
+  geom_pointrange(aes(y=Recall_mean,    ymin=Recall_mean - Recall_sd,       ymax=Recall_mean    + Recall_sd,
+                      x=Precision_mean, xmin=Precision_mean - Precision_sd, xmax=Precision_mean + Precision_sd,
+                      color=workflow, shape=Detection_threshold_percent)) +
+  scale_color_manual(values = pal.man) +
+  theme_ipsum() +
+  coord_cartesian(xlim=c(0,1), ylim=c(0,1))+
+  #facet_nested_wrap(~db, nrow = 1, scales = 'free') +
+  facet_nested(cols=vars(db), rows=vars(method), scales = 'free_x') +
+  ggtitle(paste0('Precision / Recall'))
+
+
+gg.statsum
+
+```
+
+
+
+```{r, Calculate detection stats for Genera }
+detect.tresh.ratios <- c(0.01, 0.001, 0.0001)  # -->> 0.1 %
+
+n <- 6
+t <- rank_names(ps)[n]
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom   <- glom_taxa_n(ps.all,     n=n, ignore_lineage = T)
+ps        <- ps.glom
+
+ps.gsa.glom <- glom_taxa_n(ps.gsa, n=n, ignore_lineage = T)
+
+## 
+otutab.gsa      <-  data.frame(taxon=taxa_names(ps.gsa.glom), otu_table(ps.gsa.glom))
+otutab.gsa      <-  otutab.gsa[,1:2]
+otutab.gsa[,2]  <- (otutab.gsa[,2] / sum(otutab.gsa[,2], na.rm=T)) * 100
+all.sample.stat.df <- data.frame(NULL)
+
+samples <- grep(GS_name, sample_names(ps), invert = T, value = T)
+sample  <- samples[1]
+for (sample in samples) {
+  ps.sub         <- prune_samples(sample, ps)
+  otutab.sub     <- data.frame(taxon=taxa_names(ps), otu_table(ps.sub))
+  
+  ## Calculate staitstics for each Detection threshold
+  sample.stat.df <- data.frame(NULL)
+  for (detect.tresh.ratio in detect.tresh.ratios) {
+    detect.tresh   <- detect.tresh.ratio * sum(otutab.sub[,sample])
+    
+    otutab.sub.det <- as.data.frame(otutab.sub[otutab.sub[,2] > detect.tresh,])  #; colnames(otutab.sub.det)[2] <- sample
+    
+    otutab.sub.det[,sample] <- (otutab.sub.det[,sample] / sum(otutab.sub.det[,sample], na.rm=T)) * 100
+    
+    ## Merge Estimated abundances with Theoretical
+    otutab.sub.merge <- merge(otutab.sub.det, otutab.gsa, by='taxon', all=T)
+    ## COL 2 -->> Estimated
+    ## COL 3 -->> Theoretical
+    
+    ## Set abundance to 0
+    otutab.sub.merge[is.na(otutab.sub.merge[,2]), 2] <- 0
+    otutab.sub.merge[is.na(otutab.sub.merge[,3]), 3] <- 0
+    
+    ## Taxa presence / absence : count TP, FP and FN
+    TP               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] >  0 & otutab.sub.merge[,3] >  0, ])
+    FP               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] >  0 & otutab.sub.merge[,3] == 0, ])
+    FN               <- nrow(otutab.sub.merge[otutab.sub.merge[,2] == 0 & otutab.sub.merge[,3] >  0, ])
+    
+    ## Absolute and Relative Error, for Theoretical and Measured abundance comparison
+    otutab.sub.merge$Abs_Error <- abs(otutab.sub.merge[,3] - otutab.sub.merge[,2])
+    otutab.sub.merge$Rel_Error <- 100 * (otutab.sub.merge$Abs_Error / otutab.sub.merge[,3])
+    
+    ## Chi statistic for Chi-squared test
+    otutab.sub.merge$Chi_stat <- otutab.sub.merge$Abs_Error^2 / otutab.sub.merge[,3]
+    
+    ## L1 (Manhattan) distance is the sum of Absoulte Errors
+    ## Chi-squared statistic is the sum of the squared differences
+    
+    ## For True Positives
+    distance_TP_sample  <- otutab.sub.merge[otutab.sub.merge[,3] != 0, ]
+    distance_TP_sample  <- plyr::rbind.fill(distance_TP_sample, data.frame(rbind(colSums(distance_TP_sample[,-1], na.rm=T))))
+    distance_TP_sample[nrow(distance_TP_sample), 1] <- 'Error_Sum'
+    
+    ## Calculate the same for False Positives
+    distance_FP_sample     <- otutab.sub.merge[otutab.sub.merge[,2] !=0 &  otutab.sub.merge[,3] == 0, ]
+    distance_FP_sample     <- plyr::rbind.fill(distance_FP_sample, data.frame(rbind(colSums(distance_FP_sample[,-1], na.rm=T))))
+    distance_FP_sample[nrow(distance_FP_sample), 1] <- 'Error_Sum'
+   
+    ## Cary out Chi-squared test
+    Chi_stat <- distance_TP_sample[nrow(distance_TP_sample), 'Chi_stat']
+    ## Degrees of Freedom
+    df       <- nrow(distance_TP_sample) - 1
+    ## P-value
+    p_value <- 1 - pchisq(Chi_stat, df)
+    ## Bonferroni Correction:
+    p.value_thresh <- 0.05 / nrow(distance_TP_sample)
+
+    if (p_value < p.value_thresh) {
+      chi_sig <- T
+      #cat("Reject the null hypothesis: Observed distribution is significantly different from the theoretical distribution.\n")
+    } else {
+      chi_sig <- F
+      #cat("Fail to reject the null hypothesis: Observed distribution is not significantly different from the theoretical distribution.\n")
+    }
+    
+    ## Detection metrics
+    Precision <- TP/(TP + FP)
+    Recall    <- TP/(TP + FN)
+    ## F-scores
+    F1        <- (2 * Precision * Recall) / (Precision + Recall)
+    F0.5      <- (( 1 + 0.5^2) * Precision * Recall ) / ((0.5^2 * Precision) + Recall)
+    ## 
+    stat.df        <- data.frame(sample=sample, Detection_threshold_ratio=detect.tresh.ratio, Detection_threshold=detect.tresh,
+                                 True_positives=TP, False_positives=FP, False_negatives=FN,
+                                 Precision=Precision, Recall=Recall, F1=F1, F0.5=F0.5, 
+                                 Chi_stat=Chi_stat, Chisq.test.p_value=p_value, Chisq.test.sign=chi_sig)
+    sample.stat.df <- plyr::rbind.fill(stat.df, sample.stat.df)
+  }
+  
+  all.sample.stat.df <- plyr::rbind.fill(all.sample.stat.df, sample.stat.df)
+}
+
+all.sample.stat.df <- merge(sample_data(ps), all.sample.stat.df, by.y='sample', by.x=0)
+
+all.sample.stat.df.gt <- all.sample.stat.df %>% gather(statistic, value, -c(1:(ncol(sample_data(ps))+3)))
+all.sample.stat.df.gt$Detection_threshold_percent <- factor(paste0(as.character(all.sample.stat.df.gt$Detection_threshold_ratio * 100), '%'))
+
+all.genera.stat.df  <- data.frame(all.sample.stat.df.gt, level='Genus')
+```
+
+
+```{r }
+all.stat.df  <- plyr::rbind.fill(all.species.stat.df, all.genera.stat.df)
+
+if (writetables) {
+  write_tsv(all.stat.df[], 
+            paste0(res.dir, '/Detection statistics.tsv'))
+}
+
+
+```
+
+
+
+
+#  Relative abundance of taxa at each taxonomic level
+
+```{r, Barplots}
+
+## Filter
+samples.to.keep <- plyr::rbind.fill(
+  
+  metadata[#metadata$workflow == 'minitax'  & 
+           #metadata$db == 'ProGenomes'
+           , ]
+             
+)$sample
+  
+ps <- ps.all # prune_samples(samples.to.keep, ps.all)
+
+scales <- 'fixed'
+fig.height  <- 14
+fig.width   <- 20
+top <- 20
+top.MCM <- 8
+
+multiV <- c(F, T)
+
+fig.height.vr <- fig.height
+fig.width.vr  <- fig.width
+
+## plotting function for barplots
+plotfun <- function(ps, x='sample_name', t=t, fill=t) {
+  plot_bar(ps, x=x, fill=fill
+         ) + 
+    scale_fill_manual(values=as.character(pal.man)) +
+    guides(fill = guide_legend(direction = "vertical", ncol = 1)) +
+    theme_ipsum() + 
+    theme(legend.position="right") +
+    # facet_grid(rows = vars(sequencing_date), cols = vars(DNA_isolation_method), scales = 'free')
+    facet_nested(cols   = vars(db, workflow, method), scales = 'free_x',
+                 rows   = vars(project) )
+}
+
+```
+
+
+## Phylum level
+
+```{r, Glom taxa at Phylum-level}
+n <- 2
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Phylum-level plot, fig.height=fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = T), ps.glom.norm.top),
+                t=t, fill=t) + 
+  theme(legend.position = 'none') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20.GS <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = F), ps.glom.norm.top),
+                t=t, fill=t) + ggtitle(paste0(''))
+
+#cowplot::plot_grid(ggtop20, ggtop20.GS, nrow = 1, rel_widths = c(4, 1))
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+ps.glom.norm.top.phy <- ps.glom.norm.top
+ps.glom.norm.phy     <- ps.glom.norm
+
+```
+
+
+## Order level
+
+```{r, Glom taxa at Order-level}
+n <- 4
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+ top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Order-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+
+ggtop20    <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = T), ps.glom.norm.top),
+                t=t, fill=t) + 
+  theme(legend.position = 'none') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20.GS <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = F), ps.glom.norm.top),
+                t=t, fill=t) + ggtitle(paste0(''))
+
+#cowplot::plot_grid(ggtop20, ggtop20.GS, nrow = 1, rel_widths = c(4, 1))
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+ps.glom.norm.top.ord <- ps.glom.norm.top
+ps.glom.norm.ord     <- ps.glom.norm
+```
+
+## Genus level
+
+```{r, Glom taxa at Genus-level}
+n <- 6
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Genus-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = T), ps.glom.norm.top),
+                t=t, fill=t) + 
+  theme(legend.position = 'none') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20.GS <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = F), ps.glom.norm.top),
+                t=t, fill=t) + ggtitle(paste0(''))
+
+#cowplot::plot_grid(ggtop20, ggtop20.GS, nrow = 1, rel_widths = c(4, 1))
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+ps.glom.norm.top.gen <- ps.glom.norm.top
+ps.glom.norm.gen     <- ps.glom.norm
+```
+
+## Species level
+
+```{r, Glom taxa at Species-level}
+n <- 7
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Species-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = T), ps.glom.norm.top),
+                t=t, fill=t) + 
+  theme(legend.position = 'none') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20.GS <- plotfun(
+  prune_samples(grep(GS_name, sample_names(ps.glom.norm.top), value = T, invert = F), ps.glom.norm.top),
+                t=t, fill=t) + ggtitle(paste0(''))
+
+#cowplot::plot_grid(ggtop20, ggtop20.GS, nrow = 1, rel_widths = c(4, 1))
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+ps.glom.norm.top.spec <- ps.glom.norm.top
+ps.glom.norm.spec     <- ps.glom.norm
+```
+
+
+
+
+
+# Correlations
+
+*TIDY UP THE CODE HERE!*
+
+```{r}
+
+
+plot_correl <- function(plot_data) {
+  ggplot(plot_data, aes(x = Observed, y = Theoretical, color = Taxa)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+  geom_label(data = data.frame(unique.data.frame(plot_data[,c('db', 'workflow', 'method', 'R2')]), x=0, y=1, Taxa=''),
+            aes(x=x, y=y, label = paste0('R2=', round(R2, 3))), nudge_x = 0.02, nudge_y = -0.02, size = 3) +
+  guides(color = guide_legend(direction = "vertical", ncol = 1)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  facet_wrap(~ sample, scales = "free") +
+  #coord_cartesian(xlim = c(0,1), ylim = c(0,1)) +
+  theme_ipsum() + 
+  theme(legend.position="right") +
+  facet_nested(rows=vars(workflow, method), cols=vars(db), scales = 'free') +
+  labs(
+    x = "Observed Composition",
+    y = "Theoretical Composition",
+    title = "Observed vs Theoretical Composition by Method"
+  )
+
+
+}
+```
+
+
+The correlations between the theoretical and observed composition are shown. Unclassified reads are not omitted.
+
+## Phylum level
+
+```{r}
+n <- 2
+t <- rank_names(ps.all)[n]
+
+if (correl == 'all') {
+  ps <- ps.glom.norm.phy
+} else if (correl == 'topN') {
+  ps <- ps.glom.norm.top.phy
+}
+sampdat <- data.frame(sample_data(ps))
+
+
+data <- data.frame(
+  data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = T), ps))),
+  setNames(
+    as.data.frame(data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = F), ps)))[,1]),
+    'Theoretical')
+)
+## the last column here is the Theoretical!
+
+data <- data.frame(taxon=rownames(data), data)
+
+# Calculate R-squared values for each method's correlation with the theoretical composition
+r2_values <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(starts_with("r2_")) %>%
+  gather(sample, r2) %>% 
+  unique.data.frame()
+r2_values$sample <- gsub('r2_', '', r2_values$sample)
+
+obs_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Observed, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample!='Theoretical')
+
+theor_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Theoretical, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample=='Theoretical') %>%
+  select(!starts_with("sample"))
+
+
+plot_data <- merge(theor_data, obs_data, by=c('taxon'))
+
+plot_data <- merge(plot_data, r2_values, by=c('sample'))
+
+colnames(plot_data)[c(2,5)]  <- c('Taxa', 'R2')
+plot_data$rank <- t
+
+plot_data_corr_phy <- merge(plot_data, sampdat, by.x=c('sample'), by.y=0, all.x=T)
+
+```
+
+
+```{r, fig.width=19, fig.height=15}
+# Create a scatter plot with R-squared values
+plot_correl(plot_data_corr_phy)
+```
+
+
+## Order level
+```{r, fig.width=15, fig.height=14}
+n <- 4
+t <- rank_names(ps.all)[n]
+
+if (correl == 'all') {
+  ps <- ps.glom.norm.ord
+} else if (correl == 'topN') {
+  ps <- ps.glom.norm.top.ord
+}
+sampdat <- data.frame(sample_data(ps))
+
+
+
+data <- data.frame(
+  data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = T), ps))),
+  setNames(
+    as.data.frame(data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = F), ps)))[,1]),
+    'Theoretical')
+)
+## the last column here is the Theoretical!
+
+data <- data.frame(taxon=rownames(data), data)
+
+# Calculate R-squared values for each method's correlation with the theoretical composition
+r2_values <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(starts_with("r2_")) %>%
+  gather(sample, r2) %>% 
+  unique.data.frame()
+r2_values$sample <- gsub('r2_', '', r2_values$sample)
+
+obs_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Observed, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample!='Theoretical')
+
+theor_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Theoretical, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample=='Theoretical') %>%
+  select(!starts_with("sample"))
+
+
+plot_data <- merge(theor_data, obs_data, by=c('taxon'))
+
+plot_data <- merge(plot_data, r2_values, by=c('sample'))
+
+colnames(plot_data)[c(2,5)]  <- c('Taxa', 'R2')
+plot_data$rank <- t
+
+plot_data_corr_ord <- merge(plot_data, sampdat, by.x=c('sample'), by.y=0, all.x=T)
+
+
+```
+
+```{r, fig.width=19, fig.height=15}
+# Create a scatter plot with R-squared values
+plot_correl(plot_data_corr_ord)
+```
+
+
+## Genus level
+```{r, fig.width=15, fig.height=14}
+n <- 6
+t <- rank_names(ps.all)[n]
+
+if (correl == 'all') {
+  ps <- ps.glom.norm.gen
+} else if (correl == 'topN') {
+  ps <- ps.glom.norm.top.gen
+}
+sampdat <- data.frame(sample_data(ps))
+
+data <- data.frame(
+  data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = T), ps))),
+  setNames(
+    as.data.frame(data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = F), ps)))[,1]),
+    'Theoretical')
+)
+## the last column here is the Theoretical!
+
+data <- data.frame(taxon=rownames(data), data)
+
+# Calculate R-squared values for each method's correlation with the theoretical composition
+r2_values <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(starts_with("r2_")) %>%
+  gather(sample, r2) %>% 
+  unique.data.frame()
+r2_values$sample <- gsub('r2_', '', r2_values$sample)
+
+obs_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Observed, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample!='Theoretical')
+
+theor_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Theoretical, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample=='Theoretical') %>%
+  select(!starts_with("sample"))
+
+
+plot_data <- merge(theor_data, obs_data, by=c('taxon'))
+
+plot_data <- merge(plot_data, r2_values, by=c('sample'))
+
+colnames(plot_data)[c(2,5)]  <- c('Taxa', 'R2')
+plot_data$rank <- t
+
+plot_data_corr_gen <- merge(plot_data, sampdat, by.x=c('sample'), by.y=0, all.x=T)
+
+
+```
+
+```{r, fig.width=19, fig.height=15}
+# Create a scatter plot with R-squared values
+plot_correl(plot_data_corr_gen)
+```
+
+
+## Species level
+```{r, fig.width=15, fig.height=14}
+n <- 7
+t <- rank_names(ps.all)[n]
+
+if (correl == 'all') {
+  ps <- ps.glom.norm.spec
+} else if (correl == 'topN') {
+  ps <- ps.glom.norm.top.spec
+}
+
+sampdat <- data.frame(sample_data(ps))
+
+
+data <- data.frame(
+  data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = T), ps))),
+  setNames(
+    as.data.frame(data.frame(otu_table(prune_samples(grep(GS_name, sample_names(ps), value = T, invert = F), ps)))[,1]),
+    'Theoretical')
+)
+## the last column here is the Theoretical!
+
+data <- data.frame(taxon=rownames(data), data)
+
+# Calculate R-squared values for each method's correlation with the theoretical composition
+r2_values <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(starts_with("r2_")) %>%
+  gather(sample, r2) %>% 
+  unique.data.frame()
+r2_values$sample <- gsub('r2_', '', r2_values$sample)
+
+obs_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Observed, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample!='Theoretical')
+
+theor_data <- data %>%
+  mutate(across(-taxon, ~ cor(.x, Theoretical)^2, .names = "r2_{.col}")) %>% 
+  select(taxon, !starts_with("r2_")) %>%
+  gather(sample, Theoretical, -1) %>% 
+  unique.data.frame()  %>%
+  filter(sample=='Theoretical') %>%
+  select(!starts_with("sample"))
+
+
+plot_data <- merge(theor_data, obs_data, by=c('taxon'))
+
+plot_data <- merge(plot_data, r2_values, by=c('sample'))
+
+colnames(plot_data)[c(2,5)]  <- c('Taxa', 'R2')
+plot_data$rank <- t
+
+plot_data_corr_spec <- merge(plot_data, sampdat, by.x=c('sample'), by.y=0, all.x=T)
+
+```
+
+```{r, fig.width=19, fig.height=15}
+# Create a scatter plot with R-squared values
+plot_correl(plot_data_corr_spec)
+```
+
+
+## Summarised r2 values
+
+```{r, R2 sum, fig.width=6, fig.height=9}
+# Create a scatter plot with R-squared values
+
+plot_data <- plyr::rbind.fill(plot_data_corr_phy,
+                              plot_data_corr_ord,
+                              plot_data_corr_gen,
+                              plot_data_corr_spec)
+
+
+plot_sum  <- unique.data.frame(plot_data[,c(colnames(metadata), 'rank', 'R2')])
+
+plot_sum$rank <- factor(plot_sum$rank, levels = c('phylum', 'order', 'genus', 'species'))
+
+plot_means <- plot_sum %>% 
+  group_by(across(any_of(c(colnames(metadata), "rank")))) %>% 
+  summarise(R2_mean=mean(R2))
+
+ggplot(plot_sum, aes(x = workflow, y = R2, fill = workflow)) +
+  geom_col(position = position_dodge2()) +
+  #geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+  geom_text_repel(data=plot_means,
+                  aes(y = R2_mean, label = paste0('mean r2=', round(R2_mean, 3))), 
+                  position = position_dodge2(),
+                  #nudge_x = 0.02, nudge_y = -0.02, 
+                  size = 3) +
+  guides(color = guide_legend(direction = "vertical", ncol = 1)) +
+  scale_fill_manual(values=as.character(pal.man[c(7, 14)])) +  # c(10:16)
+  #facet_wrap(~ sample, scales = "free") +
+  #coord_cartesian(xlim = c(0,1), ylim = c(0,1)) +
+  theme_ipsum() + 
+  theme(legend.position="right",
+        axis.text.x = element_text(angle=-60),
+        panel.spacing.x = unit(0.1, 'mm')) +
+  facet_nested(cols=vars(db, workflow, method),
+               rows=vars(rank),
+             # ncol=5, 
+               scales = 'free')
+
+if(writetables) {
+  write_tsv(plot_sum,   paste0(res.dir, '/Observed-Theoretical Correlations.tsv'))
+  write_tsv(plot_means, paste0(res.dir, '/Observed-Theoretical Correlations means.tsv'))
+}
+
+
+
+```
+
+
+# Chi-square tests
+*Is the observed distribution significantly different from the theoretical?*
+
+## Species level
+```{r, Plot Chi-test Species, fig.width=30, fig.height=12}
+plot.data <- all.sample.stat.df.gt[
+  is.element(all.sample.stat.df.gt$statistic, c('Chi_stat'))
+    , ]
+p.val.data <- all.sample.stat.df.gt[
+  is.element(all.sample.stat.df.gt$statistic, c('Chisq.test.sign'))
+    , ]
+
+cols <- colnames(p.val.data)[!is.element(colnames(p.val.data), c('statistic', 'value'))]
+
+plot.merged <- merge(plot.data, p.val.data, by=cols)
+plot.merged$significant[plot.merged$value.y ==  1 ] <- T
+plot.merged$significant[plot.merged$value.y ==  0 ] <- F
+
+gg.chi <- ggplot(plot.merged, 
+                      aes(x=workflow, y=value.x, fill=workflow) ) +
+    geom_col(position=position_dodge2()) +
+    geom_text(data = subset(plot.merged, significant),
+              aes(label = "*"),
+              vjust = -0.5, 
+              size = 5,
+              position=position_dodge2()
+              ) +
+    scale_fill_manual(values = pal.man) +
+    scale_y_continuous(name=('Chi-stat value')) +
+    theme_ipsum() +
+    theme(panel.spacing.x = unit(0.25, 'mm'), 
+      #axis.text.x = element_text(angle = -60)
+      ) +
+    #facet_nested_wrap(~Detection_threshold_percent+statistic+db, nrow=3, scales = 'free') +
+    facet_nested(cols=vars(db), 
+                 rows=vars(Detection_threshold_percent), 
+                 scales = 'free', independent='x') +
+  ggtitle('Species-level')
+
+
+if(writetables) {
+  write_tsv(plot.merged, paste0(res.dir, '/Species-level Chi-square tests.tsv'))
+}
+
+
+#gg.chi
+```
+
+## Genus level
+```{r, Plot Chi-test Genus, fig.width=12, fig.height=10}
+plot.data <- all.genera.stat.df[
+  is.element(all.genera.stat.df$statistic, c('Chi_stat'))
+    , ]
+p.val.data <- all.genera.stat.df[
+  is.element(all.genera.stat.df$statistic, c('Chisq.test.sign'))
+    , ]
+
+cols <- colnames(p.val.data)[!is.element(colnames(p.val.data), c('statistic', 'value'))]
+
+plot.merged <- merge(plot.data, p.val.data, by=cols)
+plot.merged$significant[plot.merged$value.y ==  1 ] <- T
+plot.merged$significant[plot.merged$value.y ==  0 ] <- F
+
+
+gg.chi.gen <- ggplot(plot.merged, 
+                      aes(x=workflow, y=value.x, fill=workflow) ) +
+    geom_col(position=position_dodge2()) +
+    geom_text(data = subset(plot.merged, significant),
+              aes(label = "*"),
+              vjust = -0.5, 
+              size = 5,
+              position=position_dodge2()
+              ) +
+    scale_fill_manual(values = pal.man) +
+    scale_y_continuous(name=('Chi-stat value')) +
+    theme_ipsum() +
+    theme(panel.spacing.x = unit(0.25, 'mm'), 
+      #axis.text.x = element_text(angle = -60)
+      ) +
+    #facet_nested_wrap(~Detection_threshold_percent+statistic+db, nrow=3, scales = 'free') +
+    facet_nested(cols=vars(db), 
+                 rows=vars(Detection_threshold_percent), 
+                 scales = 'free', independent='x') +
+  ggtitle(paste0('Genus-level'))
+
+if(writetables) {
+  write_tsv(plot.merged, paste0(res.dir, '/Genus-level Chi-square tests.tsv'))
+}
+
+
+#gg.chi.gen
+
+
+cowplot::plot_grid(gg.chi, gg.chi.gen, ncol = 2)
+```
+
+
+```{r bib, include=FALSE}
+# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
+knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
+```
+

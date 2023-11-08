@@ -1,0 +1,441 @@
+---
+title: "CAMISIM Mouse Gut PacBio HiFi and Illumina WGS: minitax (NCBI) vs Gold Standard"
+author: Balázs Kakuk
+output:
+   html_document:
+      toc: TRUE
+      toc_depth: 3
+      toc_float: TRUE
+      number_sections: TRUE
+      df_print: kable
+      
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 90% !important;
+      width: 90% !important;
+    }
+    body {
+      max-width: 90% !important;
+      margin-left: auto;
+      margin-right: auto;
+    }
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = 'center', fig.height = 10, fig.width = 30, warning = F, message = F, error = F)
+library(tidyverse)
+library(ggpubr)
+library(factoextra)
+library(FactoMineR)
+library(ggrepel)
+library(phyloseq, quietly = T)
+library(DESeq2)
+library(data.table)
+library(ggsci)
+library(hrbrthemes)
+library(ggh4x)
+library(RColorBrewer)
+library(stringr); library(stringi)
+
+### Own functions
+for(f in list.files('E:/my.R.packages/Rlyeh-main/R', full.names = T)) {source(f)}
+for(f in list.files('E:/my.R.packages/minitax/R', full.names = T)) {source(f)}
+
+rownames.from.1st.col <- function(x) {
+  x <- data.frame(x[,-1], row.names = x[,1])
+  return(x)
+}
+
+
+### General settings
+
+filt.version <- ''
+filtering    <- ''
+writetables  <- T
+save.Figs    <- F
+res.dir      <- 'Toti_all_comp';dir.create(res.dir)
+#platforms <- c('illumina', 'PacBIO')
+
+## color palette
+alpha   <- 0.9
+pal.man <- c(brewer.pal(7, 'Set1'), brewer.pal(8, 'Accent')[c(1,2,6)], brewer.pal(8, 'Set2')[c(1,3,5,6,7)], brewer.pal(8, 'Dark2') )
+pal.man <- c(colorvec[c(8,32,12:14,17,24,1:2,4,7,5,6,3,10,11,27:28,9,29)], 'grey', 'black')
+pal.man <- alpha(c(pal.man, pal.man), alpha)
+
+## taxonomic ranks
+ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+
+### minitax settings
+## Databse
+db <- 'all_NCBI_genomes'
+db.dir <- 'E:/data/databases/all_NCBI_genomes'
+## Genome Size normalization?
+NormToGenomeSize <- F
+NormFunction     <- 'mean'
+## MAPQ filtering ?
+mapq.filt <- NA #  1:59 # 
+## Filtering samples
+filter.samples.pattern <- 'LCA|Undetermined|SpeciesEstimate'  ### filter out LCA method
+
+
+## Exclude unclassified reads?
+exclude.unclass <- T
+
+## Omit very low abundance taxa
+abund.threshold <- 10
+
+### Gold Standard Settings
+cami.lineage <- 'db'
+add.GS.taxa <- F ## add all GS taxa to the barplots and the correlation plots?
+zymo.GS <- read_delim('E:/data/databases/zymo/zymo_6331_composition.txt')
+GS_name <- 'GS_reference'
+GS_nr   <- 1
+just_GS <- T
+vars <- 'platform' #('project') # c('DNA_isolation_method', 'db', 'workflow', 'method', 
+glom_spec <- T
+consider.euk <- T
+count_multiplier <- 100000
+count_colname    <- 'Genome Copy'
+
+## Fix taxa
+crop_taxa <- NULL # 'Veillonella rogosae|Prevotella corporis'
+
+genera_to_glom <- NULL # data.frame(
+#  glom= c('Veillonella', 'Faecalibacterium', 'Prevotella'),
+#  to  = c('Veillonella rogosae','Faecalibacterium prausnitzii', 'Prevotella corporis')) ## NULL
+
+species_to_glom <- NULL # data.frame(
+#  glom= c('Bacteroides fragilis', 'Bacteroides fragilis CAG:47', 'Bacteroides fragilis_A', "Secundilactobacillus pentosiphilus", "Clostridium hathewayi CAG:224"),
+#  to  = c(rep('Bacteroides fragilis', 3), 'Lactobacillus pentosiphilus', 'Hungatella hathewayi' )) ## NULL
+
+
+
+```
+
+
+
+# Notes
+
+- Minitax was run in BestAln method
+- In minitax, reads were *NOT* filtered for MAPQ
+- In minitax, results were *NOT* normalized to Genome Size
+- Unclassified reads *were* excluded
+- Taxa with total reads number of 10 or lower were excluded 
+- Eukaryotes were *NOT* excluded from the analyis
+- Sane samples for different sequencing dates were combined
+
+
+```{r, import}
+
+ps.all <- readRDS('Toti_all_PS.summed.rds')
+
+ps.all@sam_data$library <- paste0(ps.all@sam_data$Vregion, '_', ps.all@sam_data$platform)
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+
+```
+
+
+
+
+#  Alpha diversity estimations
+```{r}
+
+## Filter
+samples.to.keep <- plyr::rbind.fill(
+  
+  metadata[metadata$workflow == 'minitax'  & 
+           metadata$db == 'all_NCBI_genomes' 
+           # &metadata$libradb == 'EMUdb'
+           , ]
+             
+)$sample
+  
+ps <- prune_samples(samples.to.keep, ps.all)
+
+
+figh <- 6
+figw <- 15
+richness <- merge(
+  estimate_richness(ps, split = TRUE, measures = c("Shannon", "Simpson")),
+  metadata,
+  by=0) %>%
+  dplyr::select(c(sample, sample_name, DNA_isolation_method, platform, library, Vregion, host, workflow, db, Shannon, Simpson))
+
+if (writetables) {write_tsv(richness, paste0(res.dir, '/', 'diversity_estimates.tsv'))}
+```
+
+## Shannon (richness) measures {.tabset}
+
+### DNA_isolation_method vs Library
+```{r, fig.height = figh, fig.width = figw}
+measure <- 'Shannon'
+psh <- plot_richness(ps, x="Vregion", measures=measure, color="DNA_isolation_method")
+
+cowplot::plot_grid(
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=library, y=value)) +
+  geom_violin(aes(fill=DNA_isolation_method), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=DNA_isolation_method)) +
+  scale_y_continuous(name='Shannon index') +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  theme_ipsum() +
+  theme(axis.title.x  = element_blank(),
+        axis.text.x   = element_text(angle=-45, hjust=0),
+        panel.spacing = unit(2, 'mm'), 
+        legend.position = 'none') +
+  facet_nested(cols=vars(DNA_isolation_method), scales='free_x')
+,
+
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=DNA_isolation_method, y=value)) +
+  geom_violin(aes(fill=DNA_isolation_method), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=DNA_isolation_method)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Shannon index') +
+  theme_ipsum() + 
+  theme(axis.title.x  = element_blank(),
+    axis.text.x = element_text(angle=-45, hjust=0)) + 
+  facet_nested(cols=vars(workflow), scales='free_x')
+,
+nrow=1, rel_widths = c(3,2))
+
+```
+
+### Library vs DNA_isolation_method
+```{r, fig.height = figh, fig.width = figw}
+
+cowplot::plot_grid(
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=DNA_isolation_method, y=value)) +
+  geom_violin(aes(fill=library), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=library)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Shannon index') +
+  theme_ipsum() +
+  theme(axis.title.x  = element_blank(),
+        axis.text.x = element_text(angle=-45, hjust=0),
+        panel.spacing = unit(2, 'mm'), 
+        legend.position = 'none') +
+  facet_nested(cols=vars(library), #rows=vars(Vregion), 
+               scales='free_x')
+,
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=library, y=value)) +
+  geom_violin(aes(fill=library), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=library)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Shannon index') +
+  theme_ipsum() +
+  theme(axis.title.x  = element_blank(),
+    axis.text.x = element_text(angle=-45, hjust=0)) + 
+  facet_nested(cols=vars(workflow), 
+               scales='free_x')
+,
+nrow=1, rel_widths = c(3,2))
+
+```
+
+### ANOVA - interaction
+```{r}
+model <- aov(Shannon ~ DNA_isolation_method * library, data = richness)
+
+summary(model)
+posthoc <- TukeyHSD(model)
+
+interaction.plot(richness$DNA_isolation_method, richness$library, richness$Shannon)
+```
+
+### ANOVA DNA isolation
+```{r}
+plot.data <- data.frame(posthoc$DNA_isolation_method, comparison=rownames(posthoc$DNA_isolation_method))
+plot.data
+
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+plot.data$sig <- ''
+plot.data$sig[plot.data$p.adj <= 0.1]   <- '.'
+plot.data$sig[plot.data$p.adj <= 0.05]  <- '*'
+plot.data$sig[plot.data$p.adj <= 0.01]  <- '**'
+plot.data$sig[plot.data$p.adj <= 0.001] <- '***'
+
+plot.data$label <- paste(round(plot.data$p.adj, 3), plot.data$sig, sep=' ')
+
+ggplot(plot.data, aes(x=comparison, y=diff, color=p.adj)) +
+  geom_label_repel(aes(label=label)) +
+  #geom_label_repel(aes(label=sig)) +
+  geom_point() +
+  geom_pointrange(aes(ymin=lwr, ymax=upr)) + 
+  theme_ipsum()
+
+```
+
+### ANOVA Library
+```{r}
+plot.data <- data.frame(posthoc$library, comparison=rownames(posthoc$library))
+plot.data
+
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+plot.data$sig <- ''
+plot.data$sig[plot.data$p.adj <= 0.1]   <- '.'
+plot.data$sig[plot.data$p.adj <= 0.05]  <- '*'
+plot.data$sig[plot.data$p.adj <= 0.01]  <- '**'
+plot.data$sig[plot.data$p.adj <= 0.001] <- '***'
+
+plot.data$label <- paste(round(plot.data$p.adj, 3), plot.data$sig, sep=' ')
+
+ggplot(plot.data, aes(x=comparison, y=diff, color=p.adj)) +
+  geom_label_repel(aes(label=label)) +
+  #geom_label_repel(aes(label=sig)) +
+  geom_point() +
+  geom_pointrange(aes(ymin=lwr, ymax=upr)) + 
+  theme_ipsum()
+```
+
+
+## Simpson (evenness) measures {.tabset}
+
+### DNA_isolation_method vs Library
+```{r, fig.height = figh, fig.width = figw}
+measure <- 'Simpson'
+psh <- plot_richness(ps, x="Vregion", measures=measure, color="DNA_isolation_method")
+
+cowplot::plot_grid(
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=library, y=value)) +
+  geom_violin(aes(fill=DNA_isolation_method), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=DNA_isolation_method)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Simpson index') +
+  theme_ipsum() +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(angle=-45, hjust=0),
+        panel.spacing = unit(2, 'mm'), 
+        legend.position = 'none') +
+  facet_nested(cols=vars(DNA_isolation_method), scales='free_x')
+,
+
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=DNA_isolation_method, y=value)) +
+  geom_violin(aes(fill=DNA_isolation_method), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=DNA_isolation_method)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Simpson index') +
+  theme_ipsum() + 
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(angle=-45, hjust=0)) + 
+  facet_nested(cols=vars(workflow), scales='free_x')
+,
+nrow=1, rel_widths = c(3,2))
+
+```
+
+### Library vs DNA_isolation_method
+```{r, fig.height = figh, fig.width = figw}
+
+cowplot::plot_grid(
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=DNA_isolation_method, y=value)) +
+  geom_violin(aes(fill=library), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=library)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Simpson index') +
+  theme_ipsum() +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_text(angle=-45, hjust=0),
+        panel.spacing = unit(2, 'mm'), 
+        legend.position = 'none') +
+  facet_nested(cols=vars(library), #rows=vars(Vregion), 
+               scales='free_x')
+,
+ggplot(psh$data, #[psh$data$workflow == 'minitax', ],
+       aes(x=library, y=value)) +
+  geom_violin(aes(fill=library), position = 'dodge', alpha=0.6) +
+  geom_jitter(aes(color=library)) +
+  scale_fill_manual(values=as.character(pal.man)) +
+  scale_color_manual(values=as.character(pal.man)) +
+  scale_y_continuous(name='Simpson index') +
+  theme_ipsum() +
+  theme(axis.title.x = element_blank(), 
+    axis.text.x = element_text(angle=-45, hjust=0)) + 
+  facet_nested(cols=vars(workflow), 
+               scales='free_x')
+,
+nrow=1, rel_widths = c(3,2))
+
+```
+
+### ANOVA
+```{r, fig.height=6, fig.width=9}
+
+model <- aov(Simpson ~ DNA_isolation_method * library, data = richness)
+
+summary(model)
+posthoc <- TukeyHSD(model)
+
+interaction.plot(richness$DNA_isolation_method, richness$library, richness$Shannon)
+```
+
+### ANOVA DNA isolation
+```{r}
+plot.data <- data.frame(posthoc$DNA_isolation_method, comparison=rownames(posthoc$DNA_isolation_method))
+plot.data
+
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+plot.data$sig <- ''
+plot.data$sig[plot.data$p.adj <= 0.1]   <- '.'
+plot.data$sig[plot.data$p.adj <= 0.05]  <- '*'
+plot.data$sig[plot.data$p.adj <= 0.01]  <- '**'
+plot.data$sig[plot.data$p.adj <= 0.001] <- '***'
+
+plot.data$label <- paste(round(plot.data$p.adj, 3), plot.data$sig, sep=' ')
+
+ggplot(plot.data, aes(x=comparison, y=diff, color=p.adj)) +
+  geom_label_repel(aes(label=label)) +
+  #geom_label_repel(aes(label=sig)) +
+  geom_point() +
+  geom_pointrange(aes(ymin=lwr, ymax=upr)) + 
+  theme_ipsum()
+
+```
+
+### ANOVA Library
+```{r}
+plot.data <- data.frame(posthoc$library, comparison=rownames(posthoc$library))
+plot.data
+
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+plot.data$sig <- ''
+plot.data$sig[plot.data$p.adj <= 0.1]   <- '.'
+plot.data$sig[plot.data$p.adj <= 0.05]  <- '*'
+plot.data$sig[plot.data$p.adj <= 0.01]  <- '**'
+plot.data$sig[plot.data$p.adj <= 0.001] <- '***'
+
+plot.data$label <- paste(round(plot.data$p.adj, 3), plot.data$sig, sep=' ')
+
+ggplot(plot.data, aes(x=comparison, y=diff, color=p.adj)) +
+  geom_label_repel(aes(label=label)) +
+  #geom_label_repel(aes(label=sig)) +
+  geom_point() +
+  geom_pointrange(aes(ymin=lwr, ymax=upr)) + 
+  theme_ipsum()
+```
+
+
+
+```{r bib, include=FALSE}
+# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
+knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
+```
+

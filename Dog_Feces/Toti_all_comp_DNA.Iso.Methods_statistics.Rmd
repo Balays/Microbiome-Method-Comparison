@@ -1,0 +1,1394 @@
+---
+title: "Statistical comparison of DNA Isolation Methods across each Library preparation protocol, Toti samples - analyzed with minitax on all NCBI genomes DB"
+author: Balázs Kakuk
+output:
+   html_document:
+      toc: TRUE
+      toc_depth: 3
+      toc_float: TRUE
+      number_sections: TRUE
+      df_print: kable
+      
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 90% !important;
+      width: 90% !important;
+    }
+    body {
+      max-width: 90% !important;
+      margin-left: auto;
+      margin-right: auto;
+    }
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = 'center', fig.height = 6, fig.width = 9, warning = F, message = F, error = F)
+library(tidyverse)
+library(ggpubr)
+library(factoextra)
+library(FactoMineR)
+library(ggrepel)
+library(phyloseq, quietly = T)
+library(DESeq2)
+library(data.table)
+library(ggsci)
+library(hrbrthemes)
+library(ggh4x)
+library(RColorBrewer)
+library(stringr); library(stringi)
+library(vegan)
+
+### Load data
+load('Toti_all_comp.RData')
+
+
+### Own functions
+for(f in list.files('E:/my.R.packages/Rlyeh-main/R', full.names = T)) {source(f)}
+for(f in list.files('E:/my.R.packages/minitax/R', full.names = T)) {source(f)}
+
+rownames.from.1st.col <- function(x) {
+  x <- data.frame(x[,-1], row.names = x[,1])
+  return(x)
+}
+
+
+### General settings
+
+filt.version <- ''
+filtering    <- ''
+writetables  <- T
+save.Figs    <- F
+res.dir      <- 'Toti_all_comp_DNA.Iso.Methods_statistics';dir.create(res.dir)
+#platforms <- c('illumina', 'PacBIO')
+
+## color palette
+alpha   <- 0.9
+pal.man <- c(brewer.pal(7, 'Set1'), brewer.pal(8, 'Accent')[c(1,2,6)], brewer.pal(8, 'Set2')[c(1,3,5,6,7)], brewer.pal(8, 'Dark2') )
+pal.man <- c(colorvec[c(8,32,12:14,17,24,1:2,4,7,5,6,3,10,11,27:28,9,29)], 'grey', 'black')
+pal.man <- alpha(c(pal.man, pal.man), alpha)
+
+## taxonomic ranks
+ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+
+### minitax settings
+## Databse
+db <- 'all_NCBI_genomes'
+db.dir <- 'E:/data/databases/all_NCBI_genomes'
+## Genome Size normalization?
+NormToGenomeSize <- F
+NormFunction     <- 'mean'
+## MAPQ filtering ?
+mapq.filt <- NA #  1:59 # 
+## Filtering samples
+filter.samples.pattern <- 'LCA|Undetermined|SpeciesEstimate'  ### filter out LCA method
+
+
+## Exclude unclassified reads?
+exclude.unclass <- T
+
+## Omit very low abundance taxa
+abund.threshold <- 10
+
+### Gold Standard Settings
+cami.lineage <- 'db'
+add.GS.taxa <- F ## add all GS taxa to the barplots and the correlation plots?
+zymo.GS <- read_delim('E:/data/databases/zymo/zymo_6331_composition.txt')
+GS_name <- 'GS_reference'
+GS_nr   <- 1
+just_GS <- T
+vars <- 'platform' #('project') # c('DNA_isolation_method', 'db', 'workflow', 'method', 
+glom_spec <- T
+consider.euk <- T
+count_multiplier <- 100000
+count_colname    <- 'Genome Copy'
+
+## Fix taxa
+crop_taxa <- NULL # 'Veillonella rogosae|Prevotella corporis'
+
+genera_to_glom <- NULL # data.frame(
+#  glom= c('Veillonella', 'Faecalibacterium', 'Prevotella'),
+#  to  = c('Veillonella rogosae','Faecalibacterium prausnitzii', 'Prevotella corporis')) ## NULL
+
+species_to_glom <- NULL # data.frame(
+#  glom= c('Bacteroides fragilis', 'Bacteroides fragilis CAG:47', 'Bacteroides fragilis_A', "Secundilactobacillus pentosiphilus", "Clostridium hathewayi CAG:224"),
+#  to  = c(rep('Bacteroides fragilis', 3), 'Lactobacillus pentosiphilus', 'Hungatella hathewayi' )) ## NULL
+
+
+
+```
+
+
+
+# Notes
+
+- Minitax was run in BestAln method
+- In minitax, reads were *NOT* filtered for MAPQ
+- In minitax, results were *NOT* normalized to Genome Size
+- Unclassified reads *were* excluded
+- Taxa with total reads number of 10 or lower were excluded 
+- Eukaryotes were *NOT* excluded from the analyis
+- Same samples for different sequencing dates were combined
+- The statistical tests were carried out on sample-wise Bray-Curtis distances
+
+
+```{r, prepare}
+
+metadata <- data.frame(sample_data(ps.all))
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+
+ps.all <- prune_samples(samples.to.keep, ps.glom.norm) # use the 100% normalized data
+# OR:
+# ps.all <- prune_samples(samples.to.keep, ps.all) # use the original count data -> worse results
+
+
+### Filter for outliers
+rm.outliers <- F
+if (rm.outliers) {
+ps.all <- prune_samples(
+  sample_names(ps.all)[!is.element(sample_names(ps.all), 
+  c(
+    'Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_MN_4',
+    'Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_Q_1',
+    'Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_MN_1',
+    'Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_Z_4',
+    'Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Z_1'
+  ))],
+  ps.all)
+}
+
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+
+
+write_tsv(metadata, paste0(res.dir, '/stat.test.metadata.tsv'))
+write_tsv(otutab, paste0(res.dir, '/stat.test.otu_table.tsv'))
+write_tsv(taxtab, paste0(res.dir, '/stat.test.tax_table.tsv'))
+
+
+vregions <- c("V1_V2", "V1_V3", "V3_V4", "V1_V9", "WGS") #   unique(metadata$Vregion)
+distance <- "bray"
+```
+
+
+# Bray-Curtis distance-based statistical tests on DNA isolation kits in each Vregion (and platform)  {.tabset}
+
+*PERMIDISP is a multivariate analysis of the homogeneity of groups dispersions (variances), which can be used as a means of assessing beta diversity.*\
+
+*PERMANOVA: Permutational Multivariate Analysis of Variance Using Distance Matrices*\
+
+## V1-V2
+```{r, fig.width=12, fig.height=6}
+i <- 1
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.v1v2 <- data.frame(permanova, Vregion=vregions[i])
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.v1v2 <- data.frame(pairwise_perm, Vregion=vregions[i])
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod <- betadisper(dis, groups)
+mod
+permidisp.v1v2    <- data.frame(distance_to_centroid=mod[["distances"]],  
+                                Vregion=vregions[i])
+disp.vectors.v1v2 <- data.frame(distance_to_centroid=mod[["vectors"]],
+                                Vregion=paste0(vregions[i], ''))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.v1v2 <- data.frame(anova(mod), Vregion=vregions[i])
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.v1v2 <- permutest(mod, pairwise = TRUE, permutations = 9999)
+permutest.v1v2
+permutest.v1v2 <- data.frame(permutest.v1v2[["tab"]], Vregion=vregions[i])
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.v1v2 <- data.frame(mod.HSD[["group"]], Vregion=vregions[i])
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+## V1-V3
+```{r, fig.width=12, fig.height=6}
+i <- 2
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.v1v3 <- data.frame(permanova, Vregion=vregions[i])
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.v1v3 <- data.frame(pairwise_perm, Vregion=vregions[i])
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod <- betadisper(dis, groups)
+mod
+permidisp.v1v3    <- data.frame(distance_to_centroid=mod[["distances"]],  Vregion=vregions[i])
+disp.vectors.v1v3 <- data.frame(distance_to_centroid=mod[["vectors"]],
+                             Vregion=paste0(vregions[i], ''))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.v1v3 <- data.frame(anova(mod), Vregion=vregions[i])
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.v1v3 <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest.v1v3
+permutest.v1v3 <- data.frame(permutest.v1v3[["tab"]], Vregion=vregions[i])
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.v1v3 <- data.frame(mod.HSD[["group"]], Vregion=vregions[i])
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+
+## V3-V4
+```{r, fig.width=12, fig.height=6}
+i <- 3
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.v3v4 <- data.frame(permanova, Vregion=vregions[i])
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.v3v4 <- data.frame(pairwise_perm, Vregion=vregions[i])
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod <- betadisper(dis, groups)
+mod
+permidisp.v3v4 <- data.frame(distance_to_centroid=mod[["distances"]],  
+                             Vregion=vregions[i])
+disp.vectors.v3v4 <- data.frame(distance_to_centroid=mod[["vectors"]],
+                             Vregion=paste0(vregions[i], ''))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.v3v4 <- data.frame(anova(mod), Vregion=vregions[i])
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.v3v4 <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest.v3v4
+permutest.v3v4 <- data.frame(permutest.v3v4[["tab"]], Vregion=vregions[i])
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.v3v4 <- data.frame(mod.HSD[["group"]], Vregion=vregions[i])
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+## V1-V9 ONT
+```{r, fig.width=12, fig.height=6}
+i <- 4
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$platform == 'ONT' & 
+           metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.v1v9ont <- data.frame(permanova, 
+                                Vregion=paste0(vregions[i], '_ONT'))
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.v1v9ont <- data.frame(pairwise_perm, 
+                                    Vregion=paste0(vregions[i], '_ONT'))
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod <- betadisper(dis, groups)
+mod
+permidisp.v1v9ont <- data.frame(distance_to_centroid=mod[["distances"]], 
+                                Vregion=paste0(vregions[i], '_ONT'))
+disp.vectors.v1v9ont <- data.frame(distance_to_centroid=mod[["vectors"]],
+                               Vregion=paste0(vregions[i], '_ONT'))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.v1v9ont <- data.frame(anova(mod), 
+                                Vregion=paste0(vregions[i], '_ONT'))
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.v1v9ont <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest.v1v9ont
+permutest.v1v9ont <- data.frame(permutest.v1v9ont[["tab"]],
+                                Vregion=paste0(vregions[i], '_ONT'))
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.v1v9ont <- data.frame(mod.HSD[["group"]], 
+                                 Vregion=paste0(vregions[i], '_ONT'))
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+## V1-V9 PacBio
+```{r, fig.width=12, fig.height=6}
+i <- 4
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$platform == 'PacBio' & 
+           metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.v1v9pb <- data.frame(permanova, 
+                               Vregion=paste0(vregions[i], '_PacBio'))
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.v1v9pb <- data.frame(pairwise_perm, 
+                                   Vregion=paste0(vregions[i], '_PacBio'))
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod <- betadisper(dis, groups)
+mod
+permidisp.v1v9pb <- data.frame(distance_to_centroid=mod[["distances"]], 
+                               Vregion=paste0(vregions[i], '_PacBio'))
+
+disp.vectors.v1v9pb <- data.frame(distance_to_centroid=mod[["vectors"]],
+                               Vregion=paste0(vregions[i], '_PacBio'))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.v1v9pb <- data.frame(anova(mod), 
+                               Vregion=paste0(vregions[i], '_PacBio'))
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.v1v9pb <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest.v1v9pb
+permutest.v1v9pb <- data.frame(permutest.v1v9pb[["tab"]],
+                               Vregion=paste0(vregions[i], '_PacBio'))
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.v1v9pb <- data.frame(mod.HSD[["group"]], 
+                                Vregion=paste0(vregions[i], '_PacBio'))
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+## WGS
+```{r, fig.width=12, fig.height=6}
+i <- 5
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+
+```
+
+### PERMANOVA
+```{r, fig.width=12, fig.height=6}
+permanova     <- adonis2(otutab_t ~ DNA_isolation_method, data=sampdat, method=distance)
+permanova
+permanova.wgs <- data.frame(permanova, Vregion=vregions[i])
+
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+print(pairwise_perm)
+pairwise_perm.wgs <- data.frame(pairwise_perm, Vregion=vregions[i])
+
+```
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis    <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod    <- betadisper(dis, groups)
+mod
+permidisp.wgs <- data.frame(distance_to_centroid=mod[["distances"]], Vregion=paste0(vregions[i], ''))
+
+disp.vectors.wgs <- data.frame(distance_to_centroid=mod[["vectors"]],
+                               Vregion=paste0(vregions[i], ''))
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist.wgs <- data.frame(anova(mod),
+                            Vregion=paste0(vregions[i], ''))
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest.wgs <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest.wgs
+permutest.wgs <- data.frame(permutest.wgs[["tab"]], 
+                            Vregion=paste0(vregions[i], ''))
+```
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD <- TukeyHSD(mod))
+tukey.disp.wgs <- data.frame(mod.HSD[["group"]], 
+                             Vregion=paste0(vregions[i], ''))
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+```{r}
+
+permanova <- plyr::rbind.fill(
+  data.frame(group=rownames(permanova.v1v2),    permanova.v1v2),
+  data.frame(group=rownames(permanova.v1v3),    permanova.v1v3),
+  data.frame(group=rownames(permanova.v3v4),    permanova.v3v4),
+  data.frame(group=rownames(permanova.v1v9ont), permanova.v1v9ont),
+  data.frame(group=rownames(permanova.v1v9pb),  permanova.v1v9pb), 
+  data.frame(group=rownames(permanova.wgs),     permanova.wgs) )
+
+pairwise_perm <- plyr::rbind.fill(
+  data.frame(group=rownames(pairwise_perm.v1v2),    pairwise_perm.v1v2),
+  data.frame(group=rownames(pairwise_perm.v1v3),    pairwise_perm.v1v3),
+  data.frame(group=rownames(pairwise_perm.v3v4),    pairwise_perm.v3v4),
+  data.frame(group=rownames(pairwise_perm.v1v9ont), pairwise_perm.v1v9ont),
+  data.frame(group=rownames(pairwise_perm.v1v9pb),  pairwise_perm.v1v9pb), 
+  data.frame(group=rownames(pairwise_perm.wgs),     pairwise_perm.wgs) )
+
+anovadist <- plyr::rbind.fill(
+  data.frame(group=rownames(anovadist.v1v2),    anovadist.v1v2),
+  data.frame(group=rownames(anovadist.v1v3),    anovadist.v1v3),
+  data.frame(group=rownames(anovadist.v3v4),    anovadist.v3v4),
+  data.frame(group=rownames(anovadist.v1v9ont), anovadist.v1v9ont),
+  data.frame(group=rownames(anovadist.v1v9pb),  anovadist.v1v9pb),
+  data.frame(group=rownames(anovadist.wgs),     anovadist.wgs) )
+
+permutest <- plyr::rbind.fill(
+  data.frame(group=rownames(permutest.v1v2),    permutest.v1v2),
+  data.frame(group=rownames(permutest.v1v3),    permutest.v1v3),
+  data.frame(group=rownames(permutest.v3v4),    permutest.v3v4),
+  data.frame(group=rownames(permutest.v1v9ont), permutest.v1v9ont),
+  data.frame(group=rownames(permutest.v1v9pb),  permutest.v1v9pb), 
+  data.frame(group=rownames(permutest.wgs),     permutest.wgs) )
+
+permidisp <- plyr::rbind.fill(
+  data.frame(group=rownames(permidisp.v1v2),    permidisp.v1v2),
+  data.frame(group=rownames(permidisp.v1v3),    permidisp.v1v3),
+  data.frame(group=rownames(permidisp.v3v4),    permidisp.v3v4),
+  data.frame(group=rownames(permidisp.v1v9ont), permidisp.v1v9ont),
+  data.frame(group=rownames(permidisp.v1v9pb),  permidisp.v1v9pb),
+  data.frame(group=rownames(permidisp.wgs),     permidisp.wgs))
+
+tukey.disp <- plyr::rbind.fill(
+  data.frame(group=rownames(tukey.disp.v1v2),    tukey.disp.v1v2),
+  data.frame(group=rownames(tukey.disp.v1v3),    tukey.disp.v1v3),
+  data.frame(group=rownames(tukey.disp.v3v4),    tukey.disp.v3v4),
+  data.frame(group=rownames(tukey.disp.v1v9ont), tukey.disp.v1v9ont),
+  data.frame(group=rownames(tukey.disp.v1v9pb),  tukey.disp.v1v9pb),
+  data.frame(group=rownames(tukey.disp.wgs),     tukey.disp.wgs))
+
+disp.vectors <- plyr::rbind.fill(
+  data.frame(group=rownames(disp.vectors.v1v2),    disp.vectors.v1v2),
+  data.frame(group=rownames(disp.vectors.v1v3),    disp.vectors.v1v3),
+  data.frame(group=rownames(disp.vectors.v3v4),    disp.vectors.v3v4),
+  data.frame(group=rownames(disp.vectors.v1v9ont), disp.vectors.v1v9ont),
+  data.frame(group=rownames(disp.vectors.v1v9pb),  disp.vectors.v1v9pb),
+  data.frame(group=rownames(disp.vectors.wgs),     disp.vectors.wgs))
+
+
+write_tsv(disp.vectors,   paste0(res.dir, '/disp_vectors.tsv'))
+write_tsv(permanova,      paste0(res.dir, '/permanova.tsv'))
+write_tsv(pairwise_perm,  paste0(res.dir, '/permanova_pw.tsv'))
+write_tsv(permutest,    paste0(res.dir, '/permutest.tsv'))
+write_tsv(anovadist,    paste0(res.dir, '/anovadist.tsv'))
+write_tsv(permutest,    paste0(res.dir, '/permutest.tsv'))
+write_tsv(tukey.disp,   paste0(res.dir, '/tukey.disp.tsv'))
+write_tsv(permidisp,    paste0(res.dir, '/permidisp.tsv'))
+
+```
+
+
+
+## Combined plots for the results each library separetely
+
+### PCoA
+```{r, fig.width=16, fig.height=9}
+plot.data <- merge(disp.vectors, metadata, by.x='group', by.y='sample')
+
+
+cowplot::plot_grid(
+  ggplot(plot.data, aes(x=distance_to_centroid.PCoA1, y=distance_to_centroid.PCoA2,
+                           color=DNA_isolation_method)) + 
+    geom_point(stat="identity") +
+    labs(title="",
+         y="PCoA_1",
+         x="PCoA_2") +
+    scale_color_npg() +
+    stat_ellipse(aes(group = DNA_isolation_method), type = "norm", level = 0.95) +
+    theme_ipsum() +
+    theme(panel.spacing.x = unit(2, 'mm'),
+          axis.text.x = element_text(angle=90, hjust=1)
+          ) +
+    facet_grid(cols=vars(Vregion.x)) ,
+  
+  ggplot(plot.data, aes(x=distance_to_centroid.PCoA1, y=distance_to_centroid.PCoA3,
+                           color=DNA_isolation_method)) + 
+    geom_point(stat="identity") +
+    labs(title="",
+         y="PCoA_1",
+         x="PCoA_3") +
+    scale_color_npg() +
+    stat_ellipse(aes(group = DNA_isolation_method), type = "norm", level = 0.95) +
+    theme_ipsum() +
+    theme(#legend.position = 'none', 
+          panel.spacing.x = unit(2, 'mm'),
+          axis.text.x = element_text(angle=90, hjust=1)
+          ) +
+    facet_grid(cols=vars(Vregion.x)) ,
+  
+  nrow=2)
+
+
+```
+
+### Boxplot of distance to centroids
+```{r, fig.width=12, fig.height=7}
+plot.data <- merge(permidisp, metadata, by.x='group', by.y='sample')
+
+ggplot(plot.data, aes(x=DNA_isolation_method, y=distance_to_centroid,
+                      color=DNA_isolation_method)) + 
+  geom_boxplot() +
+  geom_jitter() +
+  labs(title="",
+       y="",
+       x="") +
+  scale_color_npg() +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(Vregion.x))
+
+plot.data %>% group_by(DNA_isolation_method, Vregion.x) %>% summarise(mean_distance=mean(distance_to_centroid), sd_distance=sd(distance_to_centroid))
+
+ggplot(plot.data, aes(x=DNA_isolation_method, y=distance_to_centroid,
+                      color=DNA_isolation_method)) + 
+  geom_boxplot() +
+  geom_jitter() +
+  labs(title="",
+       y="",
+       x="") +
+  scale_color_npg() +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) 
+
+plot.data %>% group_by(DNA_isolation_method) %>% summarise(mean_distance=mean(distance_to_centroid), sd_distance=sd(distance_to_centroid))
+```
+
+### PERMANOVA
+
+PERMANOVA (Permutational Multivariate Analysis of Variance) is a method to test the hypothesis that groups defined by some factor have similar multivariate dispersions and centroids. It's a non-parametric alternative to MANOVA and is particularly suited for community data in ecology. It works by comparing the distance between groups to the distance within groups.
+
+The null hypothesis is that the centroids of the groups in the multivariate space are equal. If the p-value is small (typically below 0.05), we reject the null hypothesis, suggesting the group centroids are indeed different.
+
+```{r}
+
+ggplot(permanova, aes(x=Vregion, y=R2, fill=Vregion)) + 
+  geom_bar(stat="identity") +
+  labs(title="R-squared values from PERMANOVA across Vregions",
+       y="R^2 value",
+       x="Vregion") +
+  scale_fill_npg() +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(group))
+
+
+```
+The R2 values indicate the proportion of variation explained by the groups. A higher R2 suggests that the grouping factor (in this case, the DNA isolation method) explains a larger proportion of the variation in the data.
+
+
+```{r}
+
+ggplot(permanova, aes(x=Vregion, y=Pr..F.)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="P-values from PERMANOVA across Vregions",
+       y="p-value",
+       x="Vregion") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  facet_grid(cols=vars(group))
+# Add a line for p=0.05 
+
+
+```
+A p-value less than 0.05, indicate that the centroids of the groups in the multivariate space are significantly different.
+
+### Pair-Wise PERMANOVA
+
+
+```{r, fig.width=16}
+
+ggplot(pairwise_perm, aes(x=pairs, y=R2, fill=pairs)) + 
+  geom_bar(stat="identity") +
+  geom_text(aes(label=sig)) +
+  labs(title="R-squared values from PERMANOVA across Vregions",
+       y="R^2 value",
+       x="pairs") +
+  scale_fill_npg()+
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(Vregion))
+```
+
+
+
+```{r, fig.width=16}
+
+ggplot(pairwise_perm, aes(x=pairs, y=p.adjusted, fill=pairs)) + 
+  geom_bar(stat="identity") +
+  geom_text(aes(label=sig)) +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  labs(title="p-values from pairwise PERMANOVA across Vregions",
+       y="R^2 value",
+       x="pairs") +
+  scale_fill_npg()+
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(Vregion))
+
+```
+
+
+### PERMUTEST
+The permutation test is a non-parametric method used to determine the significance of observed results by comparing them to a distribution of results obtained through random shuffling (or permutations) of the data labels. In the context of community ecology and the PERMANOVA test, a permutation test can be employed to determine if observed differences between groups are significant compared to differences obtained by randomly assigning samples to groups.
+
+The permutation test tested the null hypothesis that the group centroids in the multivariate space are equal. If the p-value is small, it suggests that the observed differences between the groups are significant and not likely due to random chance.
+```{r}
+ggplot(permutest, aes(x=Vregion, y=F)) + 
+  geom_bar(stat="identity", fill="skyblue") +
+  labs(title="F-values values from PERMUTEST across Vregions",
+       y="F value",
+       x="Vregion") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(group))
+```
+
+
+```{r}
+ggplot(permutest, aes(x=Vregion, y=Pr..F.)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="P-values values from PERMUTEST across Vregions",
+       y="p-value value",
+       x="Vregion") +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(group))
+```
+
+
+### ANOVA on and subsequent Tukey post-hoc multiple comparisons of means (95% family-wise confidence level)
+
+```{r}
+ggplot(tukey.disp, aes(x=group, y=p.adj, fill=group)) + 
+  geom_bar(stat="identity") +
+  labs(title="p-values PERMIDISP and subsequent ANOVA and TukeyHSD",
+       y="p-value",
+       x="comparison") +
+  scale_fill_npg() +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(Vregion))
+
+
+ggplot(tukey.disp) +
+  geom_bar(aes(x=group, y=diff, fill=group), stat="identity") +
+  geom_pointrange(aes(x=group, y=diff, ymin=lwr, ymax=upr), stat="identity") +
+  labs(title="p-values PERMIDISP and subsequent ANOVA and TukeyHSD",
+       y="p-value",
+       x="comparison") +
+  scale_fill_npg() +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(Vregion))
+
+```
+
+### Difference bettween PERMANOVA and Permutation test restuls
+
+```{r}
+comparison_df = merge(
+  permanova[, c('Vregion', 'F', 'Pr..F.')],
+  permutest[, c('Vregion', 'F', 'Pr..F.')],
+    by='Vregion', 
+    suffixes=c('_PERMANOVA', '_Permutation')
+)
+
+# Calculate the absolute differences in F-values and p-values between the two tests
+comparison_df['F_difference'] = abs(comparison_df[,'F_PERMANOVA'] - comparison_df[,'F_Permutation'])
+comparison_df['p_difference'] = abs(comparison_df[,'Pr..F._PERMANOVA'] - comparison_df[,'Pr..F._Permutation'])
+
+# Display the comparison results
+comparison_df[,c('Vregion', 'F_PERMANOVA', 'F_Permutation', 'F_difference', 'Pr..F._PERMANOVA', 'Pr..F._Permutation', 'p_difference')]
+
+```
+
+
+## Comparison across all DNA isolation methods
+
+
+### PERMANOVA
+
+Carry out PERMANOVA with combined model (DNA_isolation_kit + Vregion)
+```{r, fig.width=12, fig.height=6}
+i <- 1
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[#metadata$Vregion  == vregions[i] & 
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+## Add library as another metadata column
+ps@sam_data$library <- paste0(ps@sam_data$Vregion, '_', ps@sam_data$platform)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+dist_df  <- as.data.frame(as.matrix(ps.dists))
+
+dist_df.gt <- merge(data.frame(sample_1 = rownames(dist_df), dist_df) %>% gather(sample_2, distance, -1),
+                    sampdat, by.x='sample_1', by.y='sample')
+```
+
+### Full-model PERMANOVA
+```{r, fig.width=12, fig.height=6}
+
+permanova.full <- adonis2(otutab_t ~ DNA_isolation_method + library, data=sampdat, method=distance)
+permanova.full
+permanova.full <- data.frame(group=rownames(permanova.full), permanova.full)  
+
+write_tsv(permanova.full, paste0(res.dir, '/permanova.full.tsv'))
+write.table(dist_df,    paste0(res.dir, '/distsance_matrix.tsv'), row.names = T, sep='\t', quote=F)
+write.table(dist_df.gt, paste0(res.dir, '/distsance_matrix.gt.tsv'), row.names = T, sep='\t', quote=F)
+
+```
+
+```{r}
+
+ggplot(permanova.full, aes(x=group, y=R2)) + 
+  geom_bar(stat="identity", fill="skyblue") +
+  labs(title="R-squared values from PERMANOVA across Libraries and DNA isolation kits",
+       y="R^2 value",
+       x="library") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(group))
+```
+The R2 values indicate the proportion of variation explained by the groups. A higher R2 suggests that the grouping factor (in this case, the DNA isolation method) explains a larger proportion of the variation in the data.
+
+```{r}
+
+ggplot(permanova.full, aes(x=group, y=Pr..F.)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="P-values from PERMANOVA across Libraries and DNA isolation kits",
+       y="p-value",
+       x="Vregion") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  facet_grid(cols=vars(group))# Add a line for p=0.05 
+
+
+```
+A p-value less than 0.05, indicate that the centroids of the groups in the multivariate space are significantly different.
+
+
+### PairWise PERMANOVA
+
+```{r, fig.width=12, fig.height=6}
+# Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+pairwise_perm
+pairwise_perm <- data.frame(pairwise_perm)
+
+write_tsv(pairwise_perm, paste0(res.dir, '/pairwise.permanova.tsv'))
+```
+
+
+```{r, fig.width=12, fig.height=9}
+ggplot(pairwise_perm, aes(x=pairs, y=R2)) + 
+  geom_col(position = "dodge2", fill="skyblue") +
+  labs(title="R-squared values from Pairwise PERMANOVA across Library preparation protocols",
+       y="R^2 value",
+       x="pairs") +
+  scale_fill_npg()+
+  coord_flip() +
+  theme_ipsum() +
+  theme(
+     #axis.text.x = element_text(angle=45, hjust=1)
+    ) 
+# + facet_grid(rows=vars(DNA_isolation_method))
+```
+
+
+```{r, fig.width=12, fig.height=9}
+ggplot(pairwise_perm, aes(x=pairs, y=p.adjusted)) + 
+  geom_col(position = "dodge2", fill="coral") +
+  geom_text(aes(label=sig)) +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  labs(title="p-values from Pairwise PERMANOVA across  Library preparation protocols",
+       y="p-value",
+       x="pairs") +
+  scale_fill_npg()+
+  coord_flip() +
+  theme_ipsum() +
+  theme(
+    #axis.text.x = element_text(angle=45, hjust=1)
+    )
+  # + facet_grid(cols=vars(DNA_isolation_method), scales = 'fixed')
+
+```
+
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis    <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod    <- betadisper(dis, groups)
+mod
+
+permidisp    <- data.frame(distance_to_centroid=mod[["distances"]])
+disp.vectors <- data.frame(distance_to_centroid=mod[["vectors"]])
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist <- data.frame(anova(mod))
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest
+permutest.pw <- setNames(data.frame(permutest[["pairwise"]]$permuted), 'permuted_p.value')
+permutest.pw <- data.frame(pairs=rownames(permutest.pw), permutest.pw)
+permutest <- data.frame(permutest[["tab"]])
+
+```
+
+```{r, fig.width=14, fig.height=9}
+ggplot(permutest.pw, aes(x=pairs, y=permuted_p.value)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="PERMUTEST: Pair-wise difference in group homogeneity across Libraries",
+       y="p-value",
+       x="") +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  coord_flip()+
+  theme_ipsum() +
+  theme(
+    #axis.text.x = element_text(angle=0, hjust=0)
+    ) #+ facet_grid(cols=vars(group))
+```
+
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD   <- TukeyHSD(mod))
+tukey.disp <- data.frame(mod.HSD[["group"]])
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+
+## PERMANOVA on MN and I only
+
+Carry out PERMANOVA with combined model (DNA_isolation_kit + Vregion)
+```{r, fig.width=12, fig.height=6}
+
+i <- 1
+
+samples.to.keep <- plyr::rbind.fill(
+  metadata[#metadata$Vregion  == vregions[i] & 
+           metadata$DNA_isolation_method %in% c('MN', 'I') &
+           metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+)$sample
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+## Add library as another metadata column
+ps@sam_data$library <- paste0(ps@sam_data$Vregion, '_', ps@sam_data$platform)
+
+otutab_t <- data.frame(t(otu_table(ps)))
+otutab   <- data.frame((otu_table(ps)))
+sampdat  <- data.frame(sample_data(ps))
+
+
+stopifnot(all(rownames(sampdat) == colnames(otutab)))
+stopifnot(all(rownames(sampdat) == rownames(otutab_t)))
+
+ps.dists <- phyloseq::distance(ps, distance, type='samples')
+dist_df  <- as.data.frame(as.matrix(ps.dists))
+
+dist_df.gt <- merge(data.frame(sample_1 = rownames(dist_df), dist_df) %>% gather(sample_2, distance, -1),
+                    sampdat, by.x='sample_1', by.y='sample')
+
+permanova.full <- adonis2(otutab_t ~ DNA_isolation_method + library, data=sampdat, method=distance)
+permanova.full
+permanova.full <- data.frame(group=rownames(permanova.full), permanova.full)  
+
+## Pairwise PERMANOVA
+pairwise_perm <- pairwiseAdonis::pairwise.adonis(ps.dists, sampdat$DNA_isolation_method)
+pairwise_perm
+pairwise_perm <- data.frame(pairwise_perm)
+
+write_tsv(permanova.full, paste0(res.dir, '/permanova.full.MN.I.tsv'))
+
+```
+
+```{r}
+
+ggplot(permanova.full, aes(x=group, y=R2)) + 
+  geom_bar(stat="identity", fill="skyblue") +
+  labs(title="R-squared values from PERMANOVA across Libraries and DNA isolation kits",
+       y="R^2 value",
+       x="library") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  facet_grid(cols=vars(group))
+```
+The R2 values indicate the proportion of variation explained by the groups. A higher R2 suggests that the grouping factor (in this case, the DNA isolation method) explains a larger proportion of the variation in the data.
+
+
+```{r}
+
+ggplot(permanova.full, aes(x=group, y=Pr..F.)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="P-values from PERMANOVA across Libraries and DNA isolation kits",
+       y="p-value",
+       x="Vregion") +
+  theme_ipsum() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  facet_grid(cols=vars(group))# Add a line for p=0.05 
+
+
+```
+A p-value less than 0.05, indicate that the centroids of the groups in the multivariate space are significantly different.
+
+
+### PERMDISP2
+```{r, fig.width=12, fig.height=6}
+dis    <- ps.dists
+groups <- factor(sampdat$DNA_isolation_method)
+mod    <- betadisper(dis, groups)
+mod
+
+permidisp    <- data.frame(distance_to_centroid=mod[["distances"]])
+disp.vectors <- data.frame(distance_to_centroid=mod[["vectors"]])
+
+```
+
+### ANOVA on test results
+```{r, fig.width=12, fig.height=6}
+anova(mod)
+anovadist <- data.frame(anova(mod))
+```
+
+### Permutation test for F
+```{r, fig.width=12, fig.height=6}
+permutest <- permutest(mod, pairwise = TRUE, permutations = 999)
+permutest
+permutest.pw <- setNames(data.frame(permutest[["pairwise"]]$permuted), 'permuted_p.value')
+permutest.pw <- data.frame(pairs=rownames(permutest.pw), permutest.pw)
+permutest <- data.frame(permutest[["tab"]])
+
+```
+
+```{r, fig.width=14, fig.height=9}
+ggplot(permutest.pw, aes(x=pairs, y=permuted_p.value)) + 
+  geom_bar(stat="identity", fill="coral") +
+  labs(title="PERMUTEST: Pair-wise difference in group homogeneity across Libraries",
+       y="p-value",
+       x="") +
+  geom_hline(yintercept=0.05, linetype="dashed", color = "red") +
+  coord_flip()+
+  theme_ipsum() +
+  theme(
+    #axis.text.x = element_text(angle=0, hjust=0)
+    ) #+ facet_grid(cols=vars(group))
+```
+
+
+### Tukey's Honest Significant Differences
+```{r, fig.width=12, fig.height=6}
+(mod.HSD   <- TukeyHSD(mod))
+tukey.disp <- data.frame(mod.HSD[["group"]])
+```
+
+### PCoA and distances to centroid for each group
+```{r, fig.width=12, fig.height=6}
+
+par(mfrow = c(1,3))
+PCoA1_vs_PCoA2 <- mod
+
+my_cols <- c("#1b9e77", "#7570b3", '#345f92', '#8d2012')
+
+plot(PCoA1_vs_PCoA2, col = my_cols, pch = c(16,17), cex = 1.1, 
+     ellipse = TRUE, hull = FALSE)
+
+PCoA1_vs_PCoA3 <- mod
+plot(PCoA1_vs_PCoA3, axes = c(3,1), seg.col = "forestgreen", seg.lty = "dashed",
+           col = my_cols, pch = c(16,17), cex = 1.1, ellipse = TRUE, hull = FALSE)
+
+### 
+#boxplot(mod)
+vegan:::boxplot.betadisper(mod)
+```
+
+
+
+```{r bib, include=FALSE}
+# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
+knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
+```
+

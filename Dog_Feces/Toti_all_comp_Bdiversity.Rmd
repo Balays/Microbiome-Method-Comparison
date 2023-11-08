@@ -1,0 +1,457 @@
+---
+title: "Toti all samples"
+author: Balázs Kakuk
+output:
+   html_document:
+      toc: TRUE
+      toc_depth: 3
+      toc_float: TRUE
+      number_sections: TRUE
+      df_print: kable
+      
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 90% !important;
+      width: 90% !important;
+    }
+    body {
+      max-width: 90% !important;
+      margin-left: auto;
+      margin-right: auto;
+    }
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = 'center', fig.height = 10, fig.width = 30, warning = F, message = F, error = F)
+library(tidyverse)
+library(ggpubr)
+library(factoextra)
+library(FactoMineR)
+library(ggrepel)
+library(phyloseq, quietly = T)
+library(DESeq2)
+library(data.table)
+library(ggsci)
+library(hrbrthemes)
+library(ggh4x)
+library(RColorBrewer)
+library(stringr); library(stringi)
+
+### Own functions
+for(f in list.files('E:/my.R.packages/Rlyeh-main/R', full.names = T)) {source(f)}
+for(f in list.files('E:/my.R.packages/minitax/R', full.names = T)) {source(f)}
+
+rownames.from.1st.col <- function(x) {
+  x <- data.frame(x[,-1], row.names = x[,1])
+  return(x)
+}
+
+
+### General settings
+
+filt.version <- ''
+filtering    <- ''
+writetables  <- T
+save.Figs    <- F
+res.dir      <- 'Toti_all_comp';dir.create(res.dir)
+#platforms <- c('illumina', 'PacBIO')
+
+## color palette
+alpha   <- 0.9
+pal.man <- c(brewer.pal(7, 'Set1'), brewer.pal(8, 'Accent')[c(1,2,6)], brewer.pal(8, 'Set2')[c(1,3,5,6,7)], brewer.pal(8, 'Dark2') )
+pal.man <- c(colorvec[c(8,32,12:14,17,24,1:2,4,7,5,6,3,10,11,27:28,9,29)], 'grey', 'black')
+pal.man <- alpha(c(pal.man, pal.man), alpha)
+
+## taxonomic ranks
+ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+
+### minitax settings
+## Databse
+db <- 'all_NCBI_genomes'
+db.dir <- 'E:/data/databases/all_NCBI_genomes'
+## Genome Size normalization?
+NormToGenomeSize <- F
+NormFunction     <- 'mean'
+## MAPQ filtering ?
+mapq.filt <- NA #  1:59 # 
+## Filtering samples
+filter.samples.pattern <- 'LCA|Undetermined|SpeciesEstimate'  ### filter out LCA method
+
+
+## Exclude unclassified reads?
+exclude.unclass <- T
+
+## Omit very low abundance taxa
+abund.threshold <- 10
+
+### Gold Standard Settings
+cami.lineage <- 'db'
+add.GS.taxa <- F ## add all GS taxa to the barplots and the correlation plots?
+zymo.GS <- read_delim('E:/data/databases/zymo/zymo_6331_composition.txt')
+GS_name <- 'GS_reference'
+GS_nr   <- 1
+just_GS <- T
+vars <- 'platform' #('project') # c('DNA_isolation_method', 'db', 'workflow', 'method', 
+glom_spec <- T
+consider.euk <- T
+count_multiplier <- 100000
+count_colname    <- 'Genome Copy'
+
+## Fix taxa
+crop_taxa <- NULL # 'Veillonella rogosae|Prevotella corporis'
+
+genera_to_glom <- NULL # data.frame(
+#  glom= c('Veillonella', 'Faecalibacterium', 'Prevotella'),
+#  to  = c('Veillonella rogosae','Faecalibacterium prausnitzii', 'Prevotella corporis')) ## NULL
+
+species_to_glom <- NULL # data.frame(
+#  glom= c('Bacteroides fragilis', 'Bacteroides fragilis CAG:47', 'Bacteroides fragilis_A', "Secundilactobacillus pentosiphilus", "Clostridium hathewayi CAG:224"),
+#  to  = c(rep('Bacteroides fragilis', 3), 'Lactobacillus pentosiphilus', 'Hungatella hathewayi' )) ## NULL
+
+
+
+```
+
+
+
+# Notes
+
+- Minitax was run in BestAln method
+- In minitax, reads were *NOT* filtered for MAPQ
+- In minitax, results were *NOT* normalized to Genome Size
+- Unclassified reads *were* excluded
+- Taxa with total reads number of 10 or lower were excluded 
+- Eukaryotes were *NOT* excluded from the analyis
+- Sane samples for different sequencing dates were combined
+
+
+```{r, import}
+
+#ps.all <- readRDS('Toti_all_PS.summed.filtered.rds')
+
+load(paste0(res.dir, '.RData'))
+
+ps.all <- ps.glom.norm.top.spec
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+
+```
+
+
+# B-diversity Estimations 
+
+
+Non-metric Multi-Dimensional Scaling
+
+
+## NMDS on EMU with EMUdb {.tabset}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+####
+distance <- "bray" #"robust.aitchison"
+norm     <-  NA # 'sum' # NA #
+
+
+samples.to.keep <- plyr::rbind.fill(rownames(
+  metadata[metadata$workflow == 'EMU'   &
+           metadata$db       == 'EMUdb', ]
+  
+))
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+
+### 
+ps.prop <- norm.ps(ps, norm = norm) ## rlog normalized species counts
+## no prior normalization (before distance calculation, there is a normalization)
+
+suppressMessages(ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance=distance))
+
+#nmds.envfit  <- envfit(ord.nmds.bray, sampdat, permutations = 999) # this fits environmental vectors
+#nmds.spp.fit <- envfit(ord.nmds.bray, otutab_t, permutations = 999) # this fits species vectors
+
+
+bray.df <- plot_ordination(ps.prop, ord.nmds.bray, label="sample", title="Bray NMDS", justDF = T)
+bray.df$sample_ID <- paste(bray.df$sample_name, bray.df$platform, sep='_')
+bray.df$group     <- paste(bray.df$Vregion,     bray.df$platform, sep='_')
+```
+
+### Heatmap
+
+```{r, fig.width=16, fig.height=16}
+##
+ps.sub <- ps
+
+samp_dat <- sample_data(ps.sub)
+samp_dat$sample_ID <- paste(samp_dat$platform,
+                            samp_dat$Vregion, 
+                            samp_dat$sample_name,
+                            sep='_')
+
+
+
+
+sample_names(ps.sub) <- samp_dat$sample_ID
+
+
+ps.dists <- phyloseq::distance(ps.sub, distance, type='samples')
+distplot <- fviz_dist(ps.dists, order = F) + theme(axis.text.x = element_text(angle=90, size = 10))
+
+distplot +
+  ggtitle('EMU on EMUdb')
+#ggsave('Fig4.jpg', distplot, width=12, height=12)
+
+
+```
+
+
+
+### NMDS v1: color = DNA_isolation_method; shape = Vregion
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = group, #sequencing_date,
+                   color      = DNA_isolation_method), size=2) +
+    geom_text_repel(aes(label = sample_name, color=DNA_isolation_method)) +     
+    theme_ipsum() 
+} 
+
+pn1 <- scatplot(bray.df[,])
+pn1
+```
+
+### NMDS v2: color = Vregion; shape = DNA_isolation_method
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = DNA_isolation_method, #sequencing_date,
+                   color      = group), size=2) +
+    geom_text_repel(aes(label = sample_name, color=group)) +     
+    theme_ipsum() 
+} 
+
+pn2 <- scatplot(bray.df[,])
+pn2
+```
+
+
+
+
+## NMDS on minitax with all_NCBI_genomes {.tabset}
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+####
+distance <- "bray" #"robust.aitchison"
+norm     <-  NA # 'sum' # NA #
+
+
+samples.to.keep <- plyr::rbind.fill(rownames(
+  metadata[metadata$workflow == 'minitax'   &
+           metadata$db       == 'all_NCBI_genomes', ]
+  
+))
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+
+### 
+ps.prop <- norm.ps(ps, norm = norm) ## rlog normalized species counts
+## no prior normalization (before distance calculation, there is a normalization)
+
+suppressMessages(ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance=distance))
+
+#nmds.envfit  <- envfit(ord.nmds.bray, sampdat, permutations = 999) # this fits environmental vectors
+#nmds.spp.fit <- envfit(ord.nmds.bray, otutab_t, permutations = 999) # this fits species vectors
+
+
+bray.df <- plot_ordination(ps.prop, ord.nmds.bray, label="sample", title="Bray NMDS", justDF = T)
+bray.df$sample_ID <- paste(bray.df$sample_name, bray.df$platform, sep='_')
+bray.df$group     <- paste(bray.df$Vregion,     bray.df$platform, sep='_')
+```
+### Heatmap
+
+```{r, fig.width=16, fig.height=16}
+##
+ps.sub <- ps
+
+samp_dat <- sample_data(ps.sub)
+samp_dat$sample_ID <- paste(samp_dat$platform,
+                            samp_dat$Vregion, 
+                            samp_dat$sample_name,
+                            sep='_')
+
+
+
+
+sample_names(ps.sub) <- samp_dat$sample_ID
+
+
+ps.dists <- phyloseq::distance(ps.sub, distance, type='samples')
+distplot <- fviz_dist(ps.dists, order = F) + theme(axis.text.x = element_text(angle=90, size = 10))
+
+distplot +
+  ggtitle('minitax on all_NCBI_genomes')
+#ggsave('Fig4.jpg', distplot, width=12, height=12)
+
+
+```
+
+
+
+### NMDS v1: color = DNA_isolation_method; shape = Vregion
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = group, #sequencing_date,
+                   color      = DNA_isolation_method), size=2) +
+    geom_text_repel(aes(label = sample_name, color=DNA_isolation_method)) +     
+    theme_ipsum() 
+} 
+
+pn1 <- scatplot(bray.df[,])
+pn1
+```
+
+### NMDS v2: color = Vregion; shape = DNA_isolation_method
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = DNA_isolation_method, #sequencing_date,
+                   color      = group), size=2) +
+    geom_text_repel(aes(label = sample_name, color=group)) +     
+    theme_ipsum() 
+} 
+
+pn2 <- scatplot(bray.df[,])
+pn2
+```
+
+## Invitrogen samples, all DB and software {.tabset}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+####
+distance <- "bray" #"robust.aitchison"
+norm     <-  NA # 'sum' # NA #
+
+
+samples.to.keep <- plyr::rbind.fill(rownames(
+  metadata[ metadata$DNA_isolation_method == 'I'   
+          # metadata$workflow == 'minitax'   
+          #&metadata$db       == 'all_NCBI_genomes'
+           , ]
+  
+))
+
+ps <- prune_samples(samples.to.keep, ps.all)
+
+
+### 
+ps.prop <- norm.ps(ps, norm = norm) ## rlog normalized species counts
+## no prior normalization (before distance calculation, there is a normalization)
+
+suppressMessages(ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance=distance))
+
+#nmds.envfit  <- envfit(ord.nmds.bray, sampdat, permutations = 999) # this fits environmental vectors
+#nmds.spp.fit <- envfit(ord.nmds.bray, otutab_t, permutations = 999) # this fits species vectors
+
+
+bray.df <- plot_ordination(ps.prop, ord.nmds.bray, label="sample", title="Bray NMDS", justDF = T)
+bray.df$sample_ID <- paste(bray.df$sample_name, bray.df$platform, sep='_')
+bray.df$group     <- paste(bray.df$Vregion,     bray.df$platform, sep='_')
+```
+
+### Heatmap of Bray-Curtis distances
+
+```{r, fig.width=16, fig.height=16}
+##
+ps.sub <- ps
+
+samp_dat <- sample_data(ps.sub)
+samp_dat$sample_ID <- paste(samp_dat$platform,
+                            samp_dat$Vregion, 
+                            samp_dat$workflow, 
+                            samp_dat$db, 
+                            samp_dat$sample_name,
+                            sep='_')
+
+
+
+
+sample_names(ps.sub) <- samp_dat$sample_ID
+
+
+ps.dists <- phyloseq::distance(ps.sub, distance, type='samples')
+distplot <- fviz_dist(ps.dists, order = F) + theme(axis.text.x = element_text(angle=90, size = 10))
+
+distplot +
+  ggtitle('Invitrogen samples, all DB and software')
+#ggsave('Fig4.jpg', distplot, width=12, height=12)
+
+
+```
+
+
+### NMDS v1: color = DNA_isolation_method; shape = Vregion
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = workflow, #sequencing_date,
+                   color      = group), size=2) +
+    geom_text_repel(aes(label = db, color=group)) +     
+    theme_ipsum() 
+} 
+
+pn1 <- scatplot(bray.df[,])
+pn1
+```
+
+### NMDS v2: color = Vregion; shape = DNA_isolation_method
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = db, #sequencing_date,
+                   color      = group), size=2) +
+    geom_text_repel(aes(label = workflow, color=group)) +     
+    theme_ipsum() 
+} 
+
+pn2 <- scatplot(bray.df[,])
+pn2
+```
+
+
+### NMDS v3: color = Vregion; shape = DNA_isolation_method
+```{r, fig.width=12, fig.height=9}
+scatplot <- function(bray.df) {
+  ggplot(bray.df, 
+         aes(NMDS1, NMDS2)) +
+    geom_point(aes(shape      = group, #sequencing_date,
+                   color      = workflow), size=2) +
+    geom_text_repel(aes(label = db, color=workflow)) +     
+    theme_ipsum() 
+} 
+
+pn2 <- scatplot(bray.df[,])
+pn2
+```
+
+
+```{r bib, include=FALSE}
+# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
+knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
+```
+

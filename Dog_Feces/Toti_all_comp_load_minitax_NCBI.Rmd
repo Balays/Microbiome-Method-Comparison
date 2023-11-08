@@ -1,0 +1,645 @@
+---
+title: "Comparison of DNA isolation methods, Library preparation protocols, Bionformatic workflows and Databases on Toti samples"
+author: Balázs Kakuk
+output:
+   html_document:
+      toc: TRUE
+      toc_depth: 3
+      toc_float: TRUE
+      number_sections: TRUE
+      df_print: kable
+      
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 90% !important;
+      width: 90% !important;
+    }
+    body {
+      max-width: 90% !important;
+      margin-left: auto;
+      margin-right: auto;
+    }
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = 'center', fig.height = 10, fig.width = 30, warning = F, message = F, error = F)
+library(tidyverse)
+library(ggpubr)
+library(factoextra)
+library(FactoMineR)
+library(ggrepel)
+library(phyloseq, quietly = T)
+library(DESeq2)
+library(data.table)
+library(ggsci)
+library(hrbrthemes)
+library(ggh4x)
+library(RColorBrewer)
+library(stringr); library(stringi)
+
+### Own functions
+for(f in list.files('E:/my.R.packages/Rlyeh-main/R', full.names = T)) {source(f)}
+for(f in list.files('E:/my.R.packages/minitax/R', full.names = T)) {source(f)}
+
+rownames.from.1st.col <- function(x) {
+  x <- data.frame(x[,-1], row.names = x[,1])
+  return(x)
+}
+
+
+### General settings
+
+filt.version <- ''
+filtering    <- ''
+writetables  <- T
+save.Figs    <- F
+res.dir      <- 'Toti_all_comp_minitax_NCBI';dir.create(res.dir)
+#platforms <- c('illumina', 'PacBIO')
+
+## color palette
+alpha   <- 0.9
+pal.man <- c(brewer.pal(7, 'Set1'), brewer.pal(8, 'Accent')[c(1,2,6)], brewer.pal(8, 'Set2')[c(1,3,5,6,7)], brewer.pal(8, 'Dark2') )
+pal.man <- c(colorvec[c(8,32,12:14,17,24,1:2,4,7,5,6,3,10,11,27:28,9,29)], 'grey', 'black')
+pal.man <- alpha(c(pal.man, pal.man), alpha)
+
+## taxonomic ranks
+ranks <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+
+### minitax settings
+## Databse
+db <- 'all_NCBI_genomes'
+db.dir <- 'E:/data/databases/all_NCBI_genomes'
+## Genome Size normalization?
+NormToGenomeSize <- F
+NormFunction     <- 'mean'
+## MAPQ filtering ?
+mapq.filt <- NA #  1:59 # 
+## Filtering samples
+filter.samples.pattern <- 'LCA|Undetermined|SpeciesEstimate'  ### filter out LCA method
+
+
+## Exclude unclassified reads?
+exclude.unclass <- T
+
+## Omit very low abundance taxa
+abund.threshold <- 10
+
+### Gold Standard Settings
+cami.lineage <- 'db'
+add.GS.taxa <- F ## add all GS taxa to the barplots and the correlation plots?
+zymo.GS <- read_delim('E:/data/databases/zymo/zymo_6331_composition.txt')
+GS_name <- 'GS_reference'
+GS_nr   <- 1
+just_GS <- T
+vars <- 'platform' #('project') # c('DNA_isolation_method', 'db', 'workflow', 'method', 
+glom_spec <- T
+consider.euk <- T
+count_multiplier <- 100000
+count_colname    <- 'Genome Copy'
+
+## Fix taxa
+crop_taxa <- NULL # 'Veillonella rogosae|Prevotella corporis'
+
+genera_to_glom <- NULL # data.frame(
+#  glom= c('Veillonella', 'Faecalibacterium', 'Prevotella'),
+#  to  = c('Veillonella rogosae','Faecalibacterium prausnitzii', 'Prevotella corporis')) ## NULL
+
+species_to_glom <- NULL # data.frame(
+#  glom= c('Bacteroides fragilis', 'Bacteroides fragilis CAG:47', 'Bacteroides fragilis_A', "Secundilactobacillus pentosiphilus", "Clostridium hathewayi CAG:224"),
+#  to  = c(rep('Bacteroides fragilis', 3), 'Lactobacillus pentosiphilus', 'Hungatella hathewayi' )) ## NULL
+
+
+
+```
+
+
+
+# Notes
+
+- Minitax was run in BestAln method
+- In minitax, reads were *NOT* filtered for MAPQ
+- In minitax, results were *NOT* normalized to Genome Size
+- Unclassified reads *were* excluded
+- Taxa with total reads number of 10 or lower were excluded 
+- Eukaryotes were *NOT* excluded from the analyis
+- Same samples for different sequencing dates were combined
+
+
+```{r, import}
+
+ps.all <- readRDS('Toti_all_PS.summed.filtered.rds')
+
+metadata <- data.frame(sample_data(ps.all))
+otutab   <- data.frame(otu_table(ps.all))
+taxtab   <- data.frame(tax_table(ps.all))
+
+```
+
+
+
+
+
+#  Relative abundance of taxa at each taxonomic level
+
+```{r, Barplots}
+
+## Filter for samples
+samples.to.keep <- plyr::rbind.fill(
+  
+  metadata[metadata$workflow == 'minitax'  & 
+           metadata$db       == 'all_NCBI_genomes'
+           #metadata$DNA_isolation_method == 'I'
+           , ]
+             
+)$sample
+
+ps.all <- prune_samples(samples.to.keep, ps.all) # ps.all # 
+
+
+## Filter for taxa below threshold
+if (!is.na(abund.threshold)) {
+
+  otutab   <- data.frame(otu_table(ps.all))
+  taxtab   <- data.frame(tax_table(ps.all))
+  metadata <- data.frame(sample_data(ps.all))
+
+  otutab   <- otutab %>% dplyr::filter(rowSums(select(., everything())) >= abund.threshold)
+  taxtab   <- taxtab[is.element(rownames(taxtab), rownames(otutab)), ]
+
+  ps.all   <- phyloseq(otu_table(as.matrix(otutab), taxa_are_rows = T),
+                       tax_table(as.matrix(taxtab)),
+                       sample_data(metadata))
+
+
+}
+
+ps <- ps.all
+
+scales <- 'fixed'
+fig.height  <- 9
+fig.width   <- 14
+top <- 20
+top.MCM <- 8
+
+multiV <- c(F, T)
+
+fig.height.vr <- fig.height
+fig.width.vr  <- fig.width
+
+## plotting function for barplots
+plotfun <- function(ps, x='sample_nr', t=t, fill=t) {
+  plot_bar(ps, x=x, fill=fill
+         ) + 
+    scale_fill_manual(values=as.character(pal.man)) +
+    guides(fill = guide_legend(direction = "vertical", ncol = 1)) +
+    theme_ipsum() + 
+    theme(legend.position="right", 
+          panel.spacing.x = unit(1.5, 'mm'),
+          axis.text.x = element_text(),
+          axis.title.x = element_blank()) +
+    # facet_grid(rows = vars(sequencing_date), cols = vars(DNA_isolation_method), scales = 'free')
+    facet_nested(cols   = vars(Vregion, platform, db, workflow),
+                 rows   = vars(DNA_isolation_method),
+                 scales = 'free_x')
+}
+
+```
+
+
+## Phylum level
+
+```{r, Glom taxa at Phylum-level}
+n <- 2
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+
+```{r, Phylum-level plot, fig.height=fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+
+
+ps.glom.norm.top.phy <- ps.glom.norm.top
+ps.glom.norm.phy     <- ps.glom.norm
+ps.glom.top.phy      <- ps.glom.top
+ps.glom.phy          <- ps.glom
+
+
+```
+
+
+## Order level
+
+```{r, Glom taxa at Order-level}
+n <- 4
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+ top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Order-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+
+
+ps.glom.norm.top.ord <- ps.glom.norm.top
+ps.glom.norm.ord     <- ps.glom.norm
+ps.glom.top.ord      <- ps.glom.top
+ps.glom.ord          <- ps.glom
+
+```
+
+## Family level
+
+```{r, Glom taxa at Family-level}
+n <- 5
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Family-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+
+
+ps.glom.norm.top.fam <- ps.glom.norm.top
+ps.glom.norm.fam     <- ps.glom.norm
+ps.glom.top.fam      <- ps.glom.top
+ps.glom.fam          <- ps.glom
+
+```
+
+
+## Genus level
+
+```{r, Glom taxa at Genus-level}
+n <- 6
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Genus-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+
+
+ps.glom.norm.top.gen <- ps.glom.norm.top
+ps.glom.norm.gen     <- ps.glom.norm
+ps.glom.top.gen      <- ps.glom.top
+ps.glom.gen          <- ps.glom
+
+```
+
+
+## Species level
+
+```{r, Glom taxa at Species-level}
+n <- 7
+
+t <- rank_names(ps)[n]
+
+## glomerate at n taxonomic level, regardless of lineage
+#if (!all(taxa_names(ps) == data.frame(ps@tax_table$species))) {
+  ps.glom <- glom_taxa_n(ps, n=n, ignore_lineage = T)  
+#} else {
+#  ps.glom <- ps
+#}
+
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## normalize PS object per taxon sums
+ps.glom.norm       <- norm.ps(ps.glom, 'sum')
+
+## top20 taxa from the glomerated at specific tax level
+top.taxa           <- names(sort(taxa_sums(ps.glom.norm), decreasing=TRUE))[1:top]
+
+## add all Gold standard taxa?
+if (add.GS.taxa) {
+  top.taxa  <- unique(c(top.taxa, taxtab.gs[,t]))
+}
+
+## prune normalized taxa
+ps.glom.norm.top   <- prune_taxa(top.taxa, ps.glom.norm)
+## prune taxa
+ps.glom.top        <- prune_taxa(top.taxa, ps.glom)
+
+## get data
+ps.data.glom.top  <- df.from.ps(ps.glom.top,   comb=F)
+ps.data.glom      <- df.from.ps(ps.glom,       comb=F)
+
+## filenames for plots and tables
+filenames <- c(
+  paste0(res.dir, '_top' , top, '_', t, '_ratios'),
+  paste0(res.dir, '_all_', t,           '_ratios') 
+)
+## write tables
+if (writetables){
+ write_tsv(ps.data.glom.top, paste0(res.dir, '/', filenames[1], '.tsv')) 
+ write_tsv(ps.data.glom,     paste0(res.dir, '/', filenames[2], '.tsv')) 
+}
+
+```
+
+```{r, Species-level plot, fig.height = fig.height.vr, fig.width = fig.width.vr, eval=multiV[2]}
+
+ggtop20    <- plotfun(
+  ps.glom.norm.top,
+                t=t, fill=t) + 
+  theme(legend.position = 'right') +
+  ggtitle(paste0('Top', top, ' ', t))
+
+ggtop20
+
+if (save.Figs){
+  ggsave(paste0(res.dir, '/', filenames[1], '_Vregions.jpg'), width = fig.width.vr, height = fig.height.vr)
+}
+
+
+
+ps.glom.norm.top.spec <- ps.glom.norm.top
+ps.glom.norm.spec     <- ps.glom.norm
+ps.glom.top.spec      <- ps.glom.top
+ps.glom.spec          <- ps.glom
+
+```
+
+
+
+```{r}
+save.image(paste0(res.dir, '.RData'))
+```
+
+
+
+```{r bib, include=FALSE}
+# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
+knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
+```
+
