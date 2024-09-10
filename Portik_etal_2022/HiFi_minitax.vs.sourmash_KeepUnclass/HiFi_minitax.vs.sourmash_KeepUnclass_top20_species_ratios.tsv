@@ -1,0 +1,27 @@
+species	Zymo_6331_Portik_etal_2022	minitax_all_NCBI_genomes_RandAln_SRR13128014	SRR13128014_sourmash_kreport_NCBI
+Akkermansia muciniphila	162000	38211	39181
+Bacteroides fragilis	833000	317700	370441
+Bacteroides sp. 3_2_5	0	26868	0
+Bifidobacterium adolescentis	883000	16972	39181
+Candida albicans	31000	4529	5145
+Clostridioides difficile	110000	37268	49669
+Clostridium perfringens	10	0	0
+Enterococcus faecalis	110	12	0
+Escherichia coli	871000	49926	341946
+Faecalibacterium prausnitzii	1477000	358915	247159
+Fusobacterium nucleatum	753000	6678	83903
+Fusobacterium sp. CAG:649	0	23068	0
+Fusobacterium sp. HMSC065F01	0	39277	0
+Limosilactobacillus fermentum	968000	4579	18205
+Methanobrevibacter smithii	17000	324	1187
+Prevotella corporis	626000	152073	110815
+Roseburia hominis	1243000	108086	90236
+Saccharomyces cerevisiae	32000	906	4353
+Salmonella enterica	700	695	1385
+Shigella boydii	0	41814	0
+Shigella flexneri	0	37298	0
+Shigella genomosp. SF-2015	0	45995	0
+Shigella sonnei	0	31537	0
+Shigella sp.	0	55273	0
+unclassified	0	0	274665
+Veillonella rogosae	1994000	318611	301578

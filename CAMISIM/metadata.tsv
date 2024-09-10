@@ -1,0 +1,7 @@
+sample	bamfile	project	db	Vregion	platform	workflow	mapq.filt	method
+sample_17	sample_17.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	BestAln
+sample_37	sample_37.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	BestAln
+sample_57	sample_57.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	BestAln
+sample_17	sample_17.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	SpeciesEstimate
+sample_37	sample_37.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	SpeciesEstimate
+sample_57	sample_57.bam	CAMISIM_MG	all_NCBI_genomes	WGS	Illumina	minitax	NA	SpeciesEstimate

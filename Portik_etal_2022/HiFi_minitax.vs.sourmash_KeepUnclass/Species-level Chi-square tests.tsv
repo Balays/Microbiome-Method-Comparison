@@ -1,0 +1,7 @@
+Row.names	sample	project	sample_name	GS_name	sample_nr	db	Vregion	platform	workflow	method	bamfile	mapq.filt	Detection_threshold_ratio	Detection_threshold	Detection_threshold_percent	statistic.x	value.x	statistic.y	value.y	significant
+minitax_all_NCBI_genomes_RandAln_SRR13128014	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	0.001	1953.254	0.1%	Chi_stat	11097.1841930352	Chisq.test.sign	1	TRUE
+minitax_all_NCBI_genomes_RandAln_SRR13128014	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	0.01	19532.54	1%	Chi_stat	11718.9845376477	Chisq.test.sign	1	TRUE
+minitax_all_NCBI_genomes_RandAln_SRR13128014	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	1e-04	195.3254	0.01%	Chi_stat	10722.163228736	Chisq.test.sign	1	TRUE
+SRR13128014_sourmash_kreport_NCBI	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	0.001	1979.049	0.1%	Chi_stat	44.7630056617088	Chisq.test.sign	1	TRUE
+SRR13128014_sourmash_kreport_NCBI	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	0.01	19790.49	1%	Chi_stat	48.0363709952093	Chisq.test.sign	1	TRUE
+SRR13128014_sourmash_kreport_NCBI	SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	1e-04	197.9049	0.01%	Chi_stat	45.14393428537	Chisq.test.sign	1	TRUE

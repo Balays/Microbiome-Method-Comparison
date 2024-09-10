@@ -1,0 +1,11 @@
+platform	db	workflow	rank	R2_mean	R2_sd
+Illumina	all_NCBI_genomes	minitax	phylum	0.986841545801696	0.0174713191593154
+Illumina	all_NCBI_genomes	minitax	order	0.937879151832014	0.0939054498741179
+Illumina	all_NCBI_genomes	minitax	family	0.916092178012618	0.106530908669073
+Illumina	all_NCBI_genomes	minitax	genus	0.666989883897849	0.239266370349609
+Illumina	all_NCBI_genomes	minitax	species	0.456616438767779	0.346381114496563
+PacBio	all_NCBI_genomes	minitax	phylum	0.987809806022151	0.0174172781029043
+PacBio	all_NCBI_genomes	minitax	order	0.949054906049941	0.0836991281895361
+PacBio	all_NCBI_genomes	minitax	family	0.926520825324083	0.0903831594140172
+PacBio	all_NCBI_genomes	minitax	genus	0.703398097233375	0.265069616711025
+PacBio	all_NCBI_genomes	minitax	species	0.54957490961114	0.40370064794926

@@ -1,0 +1,9 @@
+sample	db	workflow	is.significant	N
+Zymo_D6331_VS_I_V1_V9	EmuDB	minitax	TRUE	8
+Zymo_D6331_VS_I_V1_V9	EmuDB	minitax	FALSE	7
+Zymo_D6331_VS_MN_V1_V9	EmuDB	minitax	TRUE	6
+Zymo_D6331_VS_MN_V1_V9	EmuDB	minitax	FALSE	9
+Zymo_D6331_VS_Q_V1_V9	EmuDB	minitax	FALSE	9
+Zymo_D6331_VS_Q_V1_V9	EmuDB	minitax	TRUE	6
+Zymo_D6331_VS_Z_V1_V9	EmuDB	minitax	FALSE	10
+Zymo_D6331_VS_Z_V1_V9	EmuDB	minitax	TRUE	5

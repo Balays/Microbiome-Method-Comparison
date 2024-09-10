@@ -1,0 +1,9 @@
+sample	project	sample_name	GS_name	sample_nr	db	Vregion	platform	workflow	method	bamfile	mapq.filt	rank	R2
+minitax_all_NCBI_genomes_RandAln_SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	phylum	0.869525959573688
+SRR13128014_sourmash_kreport_NCBI	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	phylum	0.71373717055197
+minitax_all_NCBI_genomes_RandAln_SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	order	0.783862689697512
+SRR13128014_sourmash_kreport_NCBI	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	order	0.572594324659328
+minitax_all_NCBI_genomes_RandAln_SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	genus	0.481056879623754
+SRR13128014_sourmash_kreport_NCBI	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	genus	0.390846036583936
+minitax_all_NCBI_genomes_RandAln_SRR13128014	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	minitax	RandAln	SRR13128014.bam	1:59	species	0.534980723650282
+SRR13128014_sourmash_kreport_NCBI	Portik_etal_2022	SRR13128014	NA	NA	all_NCBI_genomes	WGS	PacBio	sourmash	kreport	NA	NA	species	0.429503045614114

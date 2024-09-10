@@ -1,0 +1,125 @@
+sample	DNA_isolation_method	sample_name	GS_name	sample_nr	db	Vregion	platform	workflow	method	project	bamfile	mapq.filt	sequencing_date	group	GS_version	rank	R2
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	phylum	0.999553413687175
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	phylum	0.997564953773945
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	phylum	0.984097146528544
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	phylum	0.218928066668559
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	phylum	0.410867214463233
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	phylum	0.383938342620464
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	phylum	0.108931244591357
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	phylum	0.305832629632048
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	phylum	0.066966604059804
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I1_bc07_pass.bam	NA		1	D6300	phylum	0.999266565217132
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I2_bc08_pass.bam	NA		1	D6300	phylum	0.999454774805324
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I3_bc09_pass.bam	NA		1	D6300	phylum	0.999833854519454
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I4_D6300	I	I4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I4_bc06_pass.bam	NA		1	D6300	phylum	0.996530031345647
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I5_D6300	I	I5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I5_bc07_pass.bam	NA		1	D6300	phylum	0.994815376125576
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN1_bc04_pass.bam	NA		2	D6300	phylum	0.168656369802721
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN3_bc06_pass.bam	NA		2	D6300	phylum	0.401852255266343
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN4_bc03_pass.bam	NA		2	D6300	phylum	0.338969033784157
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN5_D6300	MN	MN4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN5_bc04_pass.bam	NA		2	D6300	phylum	0.0619292659092456
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q1_bc10_pass.bam	NA		3	D6300	phylum	0.0771850490125087
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q2_bc11_pass.bam	NA		3	D6300	phylum	0.0382706519698349
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q3_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q3_bc12_pass.bam	NA		3	D6300	phylum	0.0686011770368077
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q4_D6300	Q	Q4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q4_bc08_pass.bam	NA		3	D6300	phylum	0.076883379178858
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q5_D6300	Q	Q5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q5_bc09_pass.bam	NA		3	D6300	phylum	0.0960444140207245
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z1_bc01_pass.bam	NA		4	D6300	phylum	0.614528279871117
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z2_bc02_pass.bam	NA		4	D6300	phylum	0.548371069117733
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z3_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z3_bc03_pass.bam	NA		4	D6300	phylum	0.346837583028703
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z4_D6300	Z	Z4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z4_bc01_pass.bam	NA		4	D6300	phylum	0.31370990271471
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z5_D6300	Z	Z5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z5_bc02_pass.bam	NA		4	D6300	phylum	0.234496649194848
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	phylum	0.676864432164188
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	phylum	0.636540877631798
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	phylum	0.40113274087878
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	order	0.994861746428491
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	order	0.992555173875566
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	order	0.979344295762401
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	order	0.363264648880165
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	order	0.495621707999792
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	order	0.522359853497869
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	order	0.264337192745929
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	order	0.473256884340134
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	order	0.218762634815242
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I1_bc07_pass.bam	NA		1	D6300	order	0.984147592289918
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I2_bc08_pass.bam	NA		1	D6300	order	0.990429466923772
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I3_bc09_pass.bam	NA		1	D6300	order	0.989027097959188
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I4_D6300	I	I4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I4_bc06_pass.bam	NA		1	D6300	order	0.990910534044771
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I5_D6300	I	I5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I5_bc07_pass.bam	NA		1	D6300	order	0.971176052939559
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN1_bc04_pass.bam	NA		2	D6300	order	0.318576512405131
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN3_bc06_pass.bam	NA		2	D6300	order	0.485790633552409
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN4_bc03_pass.bam	NA		2	D6300	order	0.45802853557832
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN5_D6300	MN	MN4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN5_bc04_pass.bam	NA		2	D6300	order	0.209441193978936
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q1_bc10_pass.bam	NA		3	D6300	order	0.228495103456496
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q2_bc11_pass.bam	NA		3	D6300	order	0.176979552521084
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q3_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q3_bc12_pass.bam	NA		3	D6300	order	0.221779469399366
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q4_D6300	Q	Q4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q4_bc08_pass.bam	NA		3	D6300	order	0.232234901554105
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q5_D6300	Q	Q5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q5_bc09_pass.bam	NA		3	D6300	order	0.247340929482172
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z1_bc01_pass.bam	NA		4	D6300	order	0.594974708018032
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z2_bc02_pass.bam	NA		4	D6300	order	0.542903475640974
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z3_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z3_bc03_pass.bam	NA		4	D6300	order	0.441602069400065
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z4_D6300	Z	Z4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z4_bc01_pass.bam	NA		4	D6300	order	0.408458192475162
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z5_D6300	Z	Z5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z5_bc02_pass.bam	NA		4	D6300	order	0.355021055707612
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	order	0.652235583811249
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	order	0.626531578089311
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	order	0.531745847060207
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	genus	0.939716876051565
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	genus	0.89471323241183
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	genus	0.872601489724045
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	genus	0.275214197601459
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	genus	0.3733281689811
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	genus	0.323941251309252
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	genus	0.138298225554152
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	genus	0.252601684759818
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	genus	0.107797586898451
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I1_bc07_pass.bam	NA		1	D6300	genus	0.896354112208622
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I2_bc08_pass.bam	NA		1	D6300	genus	0.900172058321654
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I3_bc09_pass.bam	NA		1	D6300	genus	0.901418755936233
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I4_D6300	I	I4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I4_bc06_pass.bam	NA		1	D6300	genus	0.887682680674729
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I5_D6300	I	I5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I5_bc07_pass.bam	NA		1	D6300	genus	0.87627811764481
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN1_bc04_pass.bam	NA		2	D6300	genus	0.243054494494004
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN3_bc06_pass.bam	NA		2	D6300	genus	0.371268940846449
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN4_bc03_pass.bam	NA		2	D6300	genus	0.320934693803499
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN5_D6300	MN	MN4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN5_bc04_pass.bam	NA		2	D6300	genus	0.147694546119985
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q1_bc10_pass.bam	NA		3	D6300	genus	0.158005694424794
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q2_bc11_pass.bam	NA		3	D6300	genus	0.122047074432035
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q3_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q3_bc12_pass.bam	NA		3	D6300	genus	0.151054151070456
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q4_D6300	Q	Q4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q4_bc08_pass.bam	NA		3	D6300	genus	0.158764878936926
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q5_D6300	Q	Q5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q5_bc09_pass.bam	NA		3	D6300	genus	0.169327626593854
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z1_bc01_pass.bam	NA		4	D6300	genus	0.485712653717171
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z2_bc02_pass.bam	NA		4	D6300	genus	0.444411858692492
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z3_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z3_bc03_pass.bam	NA		4	D6300	genus	0.319488212833188
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z4_D6300	Z	Z4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z4_bc01_pass.bam	NA		4	D6300	genus	0.283783265165076
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z5_D6300	Z	Z5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z5_bc02_pass.bam	NA		4	D6300	genus	0.244034404508934
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	genus	0.548025543777697
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	genus	0.512608872558685
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	genus	0.335384022167674
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	species	0.811111405434471
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	species	0.740055540776432
+I_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	5	D6300	species	0.724816136988838
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	species	0.170264800402485
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	species	0.240069680978741
+MN_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	6	D6300	species	0.19754689334846
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	species	0.0588911749255066
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	species	0.131406551846027
+Q_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	7	D6300	species	0.047565827445967
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I1_D6300	I	I1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I1_bc07_pass.bam	NA		1	D6300	species	0.83580632363653
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I2_D6300	I	I2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I2_bc08_pass.bam	NA		1	D6300	species	0.839817997775037
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I3_D6300	I	I3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_invitrogen_I3_bc09_pass.bam	NA		1	D6300	species	0.84241771798929
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I4_D6300	I	I4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I4_bc06_pass.bam	NA		1	D6300	species	0.809548550257697
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_I5_D6300	I	I5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_invitrogen_I5_bc07_pass.bam	NA		1	D6300	species	0.811945661434334
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN1_D6300	MN	MN1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN1_bc04_pass.bam	NA		2	D6300	species	0.209084588393046
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN3_D6300	MN	MN2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_macherey_nagel_MN3_bc06_pass.bam	NA		2	D6300	species	0.321340676648519
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN4_D6300	MN	MN3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN4_bc03_pass.bam	NA		2	D6300	species	0.260031570871276
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_MN5_D6300	MN	MN4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_macherey_nagel_MN5_bc04_pass.bam	NA		2	D6300	species	0.124938661719401
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q1_D6300	Q	Q1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q1_bc10_pass.bam	NA		3	D6300	species	0.1242830291117
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q2_D6300	Q	Q2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q2_bc11_pass.bam	NA		3	D6300	species	0.0994217784415617
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q3_D6300	Q	Q3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_qiagen_Q3_bc12_pass.bam	NA		3	D6300	species	0.107853038910916
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q4_D6300	Q	Q4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q4_bc08_pass.bam	NA		3	D6300	species	0.121754960873325
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Q5_D6300	Q	Q5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_qiagen_Q5_bc09_pass.bam	NA		3	D6300	species	0.128180125184787
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z1_bc01_pass.bam	NA		4	D6300	species	0.418026273553986
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z2_bc02_pass.bam	NA		4	D6300	species	0.394494845145974
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z3_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220720_zymo_Z3_bc03_pass.bam	NA		4	D6300	species	0.26274370603407
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z4_D6300	Z	Z4	Zymo_D3600	4	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z4_bc01_pass.bam	NA		4	D6300	species	0.230224843805139
+V1_V9_ONT__minitax_v3_EMUdb_RandAln_Z5_D6300	Z	Z5	Zymo_D3600	5	EMUdb	V1_V9	ONT	minitax	RandAln	MCM_Zymo_D3600	MCM_Zymo_D3600_ONT_V1_V9_20220825_zymo_Z5_bc02_pass.bam	NA		4	D6300	species	0.202246760814911
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_1_D6300	Z	Z1	Zymo_D3600	1	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	species	0.416847456420889
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_2_D6300	Z	Z2	Zymo_D3600	2	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	species	0.376906385501403
+Z_V1_V2_Illumina_minitax_EMUdb_RandAln_4_D6300	Z	Z3	Zymo_D3600	3	EMUdb	V1_V2	Illumina	minitax	RandAln	NA	NA	NA	NA	8	D6300	species	0.203344291531009
