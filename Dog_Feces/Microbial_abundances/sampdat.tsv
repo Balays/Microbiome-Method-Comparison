@@ -1,0 +1,309 @@
+host	platform	Vregion	workflow	method	db	DNA_isolation_method	sample_nr	sample	sample_name	bamfile	project	mapq.filt
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	I	1	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_invitrogen_I1_bc01_pass	ONT_WGS_I1			
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	I	2	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_invitrogen_I2_bc02_pass	ONT_WGS_I2			
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	I	3	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_invitrogen_I3_bc03_pass	ONT_WGS_I3			
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	I	4	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_invitrogen_I4_bc04_pass	ONT_WGS_I4			
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	Z	3	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_zymo_Z3_bc05_pass	ONT_WGS_Z3			
+Toti	ONT	WGS	minitax	BestAln	all_NCBI_genomes	Z	4	minitax_all_NCBI_genomes_BestAln_toti_minion_WGS_20230802_zymo_Z4_bc06_pass	ONT_WGS_Z4			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	NZ	1	minitax_all_NCBI_genomes_BestAln_Toti_NovaSeq		Toti_NovaSeq.bam	Toti_NovaSeq	1:59
+Toti	Illumina	V1_V2	dada2		EMUdb	I	1	Toti_Illumina_V1_V2_dada2_EMUdb_I_1	I1			
+Toti	Illumina	V1_V2	dada2		EMUdb	I	2	Toti_Illumina_V1_V2_dada2_EMUdb_I_2	I2			
+Toti	Illumina	V1_V2	dada2		EMUdb	I	3	Toti_Illumina_V1_V2_dada2_EMUdb_I_3	I3			
+Toti	Illumina	V1_V2	dada2		EMUdb	I	4	Toti_Illumina_V1_V2_dada2_EMUdb_I_4	I4			
+Toti	Illumina	V1_V2	dada2		EMUdb	MN	1	Toti_Illumina_V1_V2_dada2_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V2	dada2		EMUdb	MN	2	Toti_Illumina_V1_V2_dada2_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V2	dada2		EMUdb	MN	3	Toti_Illumina_V1_V2_dada2_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V2	dada2		EMUdb	MN	4	Toti_Illumina_V1_V2_dada2_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V2	dada2		EMUdb	Z	1	Toti_Illumina_V1_V2_dada2_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V2	dada2		EMUdb	Z	2	Toti_Illumina_V1_V2_dada2_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V2	dada2		EMUdb	Z	3	Toti_Illumina_V1_V2_dada2_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V2	dada2		EMUdb	Z	4	Toti_Illumina_V1_V2_dada2_EMUdb_Z_4	Z4			
+Toti	Illumina	V1_V2	dada2		SILVA	I	1	Toti_Illumina_V1_V2_dada2_SILVA_I_1	I1			
+Toti	Illumina	V1_V2	dada2		SILVA	I	2	Toti_Illumina_V1_V2_dada2_SILVA_I_2	I2			
+Toti	Illumina	V1_V2	dada2		SILVA	I	3	Toti_Illumina_V1_V2_dada2_SILVA_I_3	I3			
+Toti	Illumina	V1_V2	dada2		SILVA	I	4	Toti_Illumina_V1_V2_dada2_SILVA_I_4	I4			
+Toti	Illumina	V1_V2	dada2		SILVA	MN	1	Toti_Illumina_V1_V2_dada2_SILVA_MN_1	MN1			
+Toti	Illumina	V1_V2	dada2		SILVA	MN	2	Toti_Illumina_V1_V2_dada2_SILVA_MN_2	MN2			
+Toti	Illumina	V1_V2	dada2		SILVA	MN	3	Toti_Illumina_V1_V2_dada2_SILVA_MN_3	MN3			
+Toti	Illumina	V1_V2	dada2		SILVA	MN	4	Toti_Illumina_V1_V2_dada2_SILVA_MN_4	MN4			
+Toti	Illumina	V1_V2	dada2		SILVA	Z	1	Toti_Illumina_V1_V2_dada2_SILVA_Z_1	Z1			
+Toti	Illumina	V1_V2	dada2		SILVA	Z	2	Toti_Illumina_V1_V2_dada2_SILVA_Z_2	Z2			
+Toti	Illumina	V1_V2	dada2		SILVA	Z	3	Toti_Illumina_V1_V2_dada2_SILVA_Z_3	Z3			
+Toti	Illumina	V1_V2	dada2		SILVA	Z	4	Toti_Illumina_V1_V2_dada2_SILVA_Z_4	Z4			
+Toti	Illumina	V1_V2	EMU		EMUdb	I	1	Toti_Illumina_V1_V2_EMU_EMUdb_I_1	I1			
+Toti	Illumina	V1_V2	EMU		EMUdb	I	2	Toti_Illumina_V1_V2_EMU_EMUdb_I_2	I2			
+Toti	Illumina	V1_V2	EMU		EMUdb	I	3	Toti_Illumina_V1_V2_EMU_EMUdb_I_3	I3			
+Toti	Illumina	V1_V2	EMU		EMUdb	I	4	Toti_Illumina_V1_V2_EMU_EMUdb_I_4	I4			
+Toti	Illumina	V1_V2	EMU		EMUdb	MN	1	Toti_Illumina_V1_V2_EMU_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V2	EMU		EMUdb	MN	2	Toti_Illumina_V1_V2_EMU_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V2	EMU		EMUdb	MN	3	Toti_Illumina_V1_V2_EMU_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V2	EMU		EMUdb	MN	4	Toti_Illumina_V1_V2_EMU_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V2	EMU		EMUdb	Z	1	Toti_Illumina_V1_V2_EMU_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V2	EMU		EMUdb	Z	2	Toti_Illumina_V1_V2_EMU_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V2	EMU		EMUdb	Z	3	Toti_Illumina_V1_V2_EMU_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V2	EMU		EMUdb	Z	4	Toti_Illumina_V1_V2_EMU_EMUdb_Z_4	Z4			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	I	1	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	I	2	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	I	3	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	I	4	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	Illumina	V1_V2	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_Illumina_V1_V2_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	I	1	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_I_1	I1			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	I	2	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_I_2	I2			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	I	3	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_I_3	I3			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	I	4	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_I_4	I4			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	MN	1	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	MN	2	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	MN	3	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	MN	4	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	Z	1	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	Z	2	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	Z	3	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V2	minitax	BestAln	EMUdb	Z	4	Toti_Illumina_V1_V2_minitax_BestAln_EMUdb_Z_4	Z4			
+Toti	Illumina	V1_V3	dada2		EMUdb	I	1	Toti_Illumina_V1_V3_dada2_EMUdb_I_1	I1			
+Toti	Illumina	V1_V3	dada2		EMUdb	I	2	Toti_Illumina_V1_V3_dada2_EMUdb_I_2	I2			
+Toti	Illumina	V1_V3	dada2		EMUdb	I	3	Toti_Illumina_V1_V3_dada2_EMUdb_I_3	I3			
+Toti	Illumina	V1_V3	dada2		EMUdb	I	4	Toti_Illumina_V1_V3_dada2_EMUdb_I_4	I4			
+Toti	Illumina	V1_V3	dada2		EMUdb	MN	1	Toti_Illumina_V1_V3_dada2_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V3	dada2		EMUdb	MN	2	Toti_Illumina_V1_V3_dada2_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V3	dada2		EMUdb	MN	3	Toti_Illumina_V1_V3_dada2_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V3	dada2		EMUdb	MN	4	Toti_Illumina_V1_V3_dada2_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V3	dada2		EMUdb	Q	1	Toti_Illumina_V1_V3_dada2_EMUdb_Q_1	Q1			
+Toti	Illumina	V1_V3	dada2		EMUdb	Q	2	Toti_Illumina_V1_V3_dada2_EMUdb_Q_2	Q2			
+Toti	Illumina	V1_V3	dada2		EMUdb	Q	3	Toti_Illumina_V1_V3_dada2_EMUdb_Q_3	Q3			
+Toti	Illumina	V1_V3	dada2		EMUdb	Q	4	Toti_Illumina_V1_V3_dada2_EMUdb_Q_4	Q4			
+Toti	Illumina	V1_V3	dada2		EMUdb	Z	1	Toti_Illumina_V1_V3_dada2_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V3	dada2		EMUdb	Z	2	Toti_Illumina_V1_V3_dada2_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V3	dada2		EMUdb	Z	3	Toti_Illumina_V1_V3_dada2_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V3	dada2		EMUdb	Z	4	Toti_Illumina_V1_V3_dada2_EMUdb_Z_4	Z4			
+Toti	Illumina	V1_V3	dada2		SILVA	I	1	Toti_Illumina_V1_V3_dada2_SILVA_I_1	I1			
+Toti	Illumina	V1_V3	dada2		SILVA	I	2	Toti_Illumina_V1_V3_dada2_SILVA_I_2	I2			
+Toti	Illumina	V1_V3	dada2		SILVA	I	3	Toti_Illumina_V1_V3_dada2_SILVA_I_3	I3			
+Toti	Illumina	V1_V3	dada2		SILVA	I	4	Toti_Illumina_V1_V3_dada2_SILVA_I_4	I4			
+Toti	Illumina	V1_V3	dada2		SILVA	MN	1	Toti_Illumina_V1_V3_dada2_SILVA_MN_1	MN1			
+Toti	Illumina	V1_V3	dada2		SILVA	MN	2	Toti_Illumina_V1_V3_dada2_SILVA_MN_2	MN2			
+Toti	Illumina	V1_V3	dada2		SILVA	MN	3	Toti_Illumina_V1_V3_dada2_SILVA_MN_3	MN3			
+Toti	Illumina	V1_V3	dada2		SILVA	MN	4	Toti_Illumina_V1_V3_dada2_SILVA_MN_4	MN4			
+Toti	Illumina	V1_V3	dada2		SILVA	Q	1	Toti_Illumina_V1_V3_dada2_SILVA_Q_1	Q1			
+Toti	Illumina	V1_V3	dada2		SILVA	Q	2	Toti_Illumina_V1_V3_dada2_SILVA_Q_2	Q2			
+Toti	Illumina	V1_V3	dada2		SILVA	Q	3	Toti_Illumina_V1_V3_dada2_SILVA_Q_3	Q3			
+Toti	Illumina	V1_V3	dada2		SILVA	Q	4	Toti_Illumina_V1_V3_dada2_SILVA_Q_4	Q4			
+Toti	Illumina	V1_V3	dada2		SILVA	Z	1	Toti_Illumina_V1_V3_dada2_SILVA_Z_1	Z1			
+Toti	Illumina	V1_V3	dada2		SILVA	Z	2	Toti_Illumina_V1_V3_dada2_SILVA_Z_2	Z2			
+Toti	Illumina	V1_V3	dada2		SILVA	Z	3	Toti_Illumina_V1_V3_dada2_SILVA_Z_3	Z3			
+Toti	Illumina	V1_V3	dada2		SILVA	Z	4	Toti_Illumina_V1_V3_dada2_SILVA_Z_4	Z4			
+Toti	Illumina	V1_V3	EMU		EMUdb	I	1	Toti_Illumina_V1_V3_EMU_EMUdb_I_1	I1			
+Toti	Illumina	V1_V3	EMU		EMUdb	I	2	Toti_Illumina_V1_V3_EMU_EMUdb_I_2	I2			
+Toti	Illumina	V1_V3	EMU		EMUdb	I	3	Toti_Illumina_V1_V3_EMU_EMUdb_I_3	I3			
+Toti	Illumina	V1_V3	EMU		EMUdb	I	4	Toti_Illumina_V1_V3_EMU_EMUdb_I_4	I4			
+Toti	Illumina	V1_V3	EMU		EMUdb	MN	1	Toti_Illumina_V1_V3_EMU_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V3	EMU		EMUdb	MN	2	Toti_Illumina_V1_V3_EMU_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V3	EMU		EMUdb	MN	3	Toti_Illumina_V1_V3_EMU_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V3	EMU		EMUdb	MN	4	Toti_Illumina_V1_V3_EMU_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V3	EMU		EMUdb	Q	1	Toti_Illumina_V1_V3_EMU_EMUdb_Q_1	Q1			
+Toti	Illumina	V1_V3	EMU		EMUdb	Q	2	Toti_Illumina_V1_V3_EMU_EMUdb_Q_2	Q2			
+Toti	Illumina	V1_V3	EMU		EMUdb	Q	3	Toti_Illumina_V1_V3_EMU_EMUdb_Q_3	Q3			
+Toti	Illumina	V1_V3	EMU		EMUdb	Z	1	Toti_Illumina_V1_V3_EMU_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V3	EMU		EMUdb	Z	2	Toti_Illumina_V1_V3_EMU_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V3	EMU		EMUdb	Z	3	Toti_Illumina_V1_V3_EMU_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V3	EMU		EMUdb	Z	4	Toti_Illumina_V1_V3_EMU_EMUdb_Z_4	Z4			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	I	1	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	I	2	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	I	3	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	I	4	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Q	1	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Q_1	Q1			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Q	2	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Q_2	Q2			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Q	3	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Q_3	Q3			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	Illumina	V1_V3	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_Illumina_V1_V3_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	I	1	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_I_1	I1			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	I	2	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_I_2	I2			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	I	3	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_I_3	I3			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	I	4	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_I_4	I4			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	MN	1	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_MN_1	MN1			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	MN	2	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_MN_2	MN2			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	MN	3	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_MN_3	MN3			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	MN	4	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_MN_4	MN4			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Q	1	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Q_1	Q1			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Q	2	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Q_2	Q2			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Q	3	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Q_3	Q3			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Z	1	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Z_1	Z1			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Z	2	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Z_2	Z2			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Z	3	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Z_3	Z3			
+Toti	Illumina	V1_V3	minitax	BestAln	EMUdb	Z	4	Toti_Illumina_V1_V3_minitax_BestAln_EMUdb_Z_4	Z4			
+Toti	Illumina	V3_V4	dada2		EMUdb	I	1	Toti_Illumina_V3_V4_dada2_EMUdb_I_1	I1			
+Toti	Illumina	V3_V4	dada2		EMUdb	I	2	Toti_Illumina_V3_V4_dada2_EMUdb_I_2	I2			
+Toti	Illumina	V3_V4	dada2		EMUdb	I	3	Toti_Illumina_V3_V4_dada2_EMUdb_I_3	I3			
+Toti	Illumina	V3_V4	dada2		EMUdb	I	4	Toti_Illumina_V3_V4_dada2_EMUdb_I_4	I4			
+Toti	Illumina	V3_V4	dada2		EMUdb	MN	1	Toti_Illumina_V3_V4_dada2_EMUdb_MN_1	MN1			
+Toti	Illumina	V3_V4	dada2		EMUdb	MN	2	Toti_Illumina_V3_V4_dada2_EMUdb_MN_2	MN2			
+Toti	Illumina	V3_V4	dada2		EMUdb	MN	3	Toti_Illumina_V3_V4_dada2_EMUdb_MN_3	MN3			
+Toti	Illumina	V3_V4	dada2		EMUdb	MN	4	Toti_Illumina_V3_V4_dada2_EMUdb_MN_4	MN4			
+Toti	Illumina	V3_V4	dada2		EMUdb	Z	1	Toti_Illumina_V3_V4_dada2_EMUdb_Z_1	Z1			
+Toti	Illumina	V3_V4	dada2		EMUdb	Z	2	Toti_Illumina_V3_V4_dada2_EMUdb_Z_2	Z2			
+Toti	Illumina	V3_V4	dada2		EMUdb	Z	3	Toti_Illumina_V3_V4_dada2_EMUdb_Z_3	Z3			
+Toti	Illumina	V3_V4	dada2		EMUdb	Z	4	Toti_Illumina_V3_V4_dada2_EMUdb_Z_4	Z4			
+Toti	Illumina	V3_V4	dada2		SILVA	I	1	Toti_Illumina_V3_V4_dada2_SILVA_I_1	I1			
+Toti	Illumina	V3_V4	dada2		SILVA	I	2	Toti_Illumina_V3_V4_dada2_SILVA_I_2	I2			
+Toti	Illumina	V3_V4	dada2		SILVA	I	3	Toti_Illumina_V3_V4_dada2_SILVA_I_3	I3			
+Toti	Illumina	V3_V4	dada2		SILVA	I	4	Toti_Illumina_V3_V4_dada2_SILVA_I_4	I4			
+Toti	Illumina	V3_V4	dada2		SILVA	MN	1	Toti_Illumina_V3_V4_dada2_SILVA_MN_1	MN1			
+Toti	Illumina	V3_V4	dada2		SILVA	MN	2	Toti_Illumina_V3_V4_dada2_SILVA_MN_2	MN2			
+Toti	Illumina	V3_V4	dada2		SILVA	MN	3	Toti_Illumina_V3_V4_dada2_SILVA_MN_3	MN3			
+Toti	Illumina	V3_V4	dada2		SILVA	MN	4	Toti_Illumina_V3_V4_dada2_SILVA_MN_4	MN4			
+Toti	Illumina	V3_V4	dada2		SILVA	Z	1	Toti_Illumina_V3_V4_dada2_SILVA_Z_1	Z1			
+Toti	Illumina	V3_V4	dada2		SILVA	Z	2	Toti_Illumina_V3_V4_dada2_SILVA_Z_2	Z2			
+Toti	Illumina	V3_V4	dada2		SILVA	Z	3	Toti_Illumina_V3_V4_dada2_SILVA_Z_3	Z3			
+Toti	Illumina	V3_V4	dada2		SILVA	Z	4	Toti_Illumina_V3_V4_dada2_SILVA_Z_4	Z4			
+Toti	Illumina	V3_V4	EMU		EMUdb	I	1	Toti_Illumina_V3_V4_EMU_EMUdb_I_1	I1			
+Toti	Illumina	V3_V4	EMU		EMUdb	I	2	Toti_Illumina_V3_V4_EMU_EMUdb_I_2	I2			
+Toti	Illumina	V3_V4	EMU		EMUdb	I	3	Toti_Illumina_V3_V4_EMU_EMUdb_I_3	I3			
+Toti	Illumina	V3_V4	EMU		EMUdb	I	4	Toti_Illumina_V3_V4_EMU_EMUdb_I_4	I4			
+Toti	Illumina	V3_V4	EMU		EMUdb	MN	1	Toti_Illumina_V3_V4_EMU_EMUdb_MN_1	MN1			
+Toti	Illumina	V3_V4	EMU		EMUdb	MN	2	Toti_Illumina_V3_V4_EMU_EMUdb_MN_2	MN2			
+Toti	Illumina	V3_V4	EMU		EMUdb	MN	3	Toti_Illumina_V3_V4_EMU_EMUdb_MN_3	MN3			
+Toti	Illumina	V3_V4	EMU		EMUdb	MN	4	Toti_Illumina_V3_V4_EMU_EMUdb_MN_4	MN4			
+Toti	Illumina	V3_V4	EMU		EMUdb	Z	1	Toti_Illumina_V3_V4_EMU_EMUdb_Z_1	Z1			
+Toti	Illumina	V3_V4	EMU		EMUdb	Z	2	Toti_Illumina_V3_V4_EMU_EMUdb_Z_2	Z2			
+Toti	Illumina	V3_V4	EMU		EMUdb	Z	3	Toti_Illumina_V3_V4_EMU_EMUdb_Z_3	Z3			
+Toti	Illumina	V3_V4	EMU		EMUdb	Z	4	Toti_Illumina_V3_V4_EMU_EMUdb_Z_4	Z4			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	I	1	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	I	2	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	I	3	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	I	4	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	Illumina	V3_V4	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_Illumina_V3_V4_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	I	1	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_I_1	I1			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	I	2	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_I_2	I2			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	I	3	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_I_3	I3			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	I	4	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_I_4	I4			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	MN	1	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_MN_1	MN1			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	MN	2	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_MN_2	MN2			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	MN	3	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_MN_3	MN3			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	MN	4	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_MN_4	MN4			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	Z	1	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_Z_1	Z1			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	Z	2	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_Z_2	Z2			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	Z	3	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_Z_3	Z3			
+Toti	Illumina	V3_V4	minitax	BestAln	EMUdb	Z	4	Toti_Illumina_V3_V4_minitax_BestAln_EMUdb_Z_4	Z4			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	I	1	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	I	2	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	I	3	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	I	4	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Q	1	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Q_1	Q1			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Q	2	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Q_2	Q2			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Q	3	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Q_3	Q3			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Q	4	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Q_4	Q4			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	Illumina	WGS	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_Illumina_WGS_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	I	1	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_I_1	I1			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	I	2	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_I_2	I2			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	I	3	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_I_3	I3			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	I	4	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_I_4	I4			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	MN	1	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_MN_1	MN1			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	MN	2	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_MN_2	MN2			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	MN	3	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_MN_3	MN3			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	MN	4	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_MN_4	MN4			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Q	1	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Q_1	Q1			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Q	2	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Q_2	Q2			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Q	3	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Q_3	Q3			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Q	4	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Q_4	Q4			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Z	1	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Z_1	Z1			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Z	2	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Z_2	Z2			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Z	3	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Z_3	Z3			
+Toti	Illumina	WGS	sourmash	k31	all_NCBI_genomes	Z	4	Toti_Illumina_WGS_sourmash_k31_all_NCBI_genomes_Z_4	Z4			
+Toti	ONT	V1_V9	EMU		EMUdb	I	1	Toti_ONT_V1_V9_EMU_EMUdb_I_1	I1			
+Toti	ONT	V1_V9	EMU		EMUdb	I	2	Toti_ONT_V1_V9_EMU_EMUdb_I_2	I2			
+Toti	ONT	V1_V9	EMU		EMUdb	I	3	Toti_ONT_V1_V9_EMU_EMUdb_I_3	I3			
+Toti	ONT	V1_V9	EMU		EMUdb	I	4	Toti_ONT_V1_V9_EMU_EMUdb_I_4	I4			
+Toti	ONT	V1_V9	EMU		EMUdb	MN	1	Toti_ONT_V1_V9_EMU_EMUdb_MN_1	MN1			
+Toti	ONT	V1_V9	EMU		EMUdb	MN	2	Toti_ONT_V1_V9_EMU_EMUdb_MN_2	MN2			
+Toti	ONT	V1_V9	EMU		EMUdb	MN	3	Toti_ONT_V1_V9_EMU_EMUdb_MN_3	MN3			
+Toti	ONT	V1_V9	EMU		EMUdb	MN	4	Toti_ONT_V1_V9_EMU_EMUdb_MN_4	MN4			
+Toti	ONT	V1_V9	EMU		EMUdb	Z	1	Toti_ONT_V1_V9_EMU_EMUdb_Z_1	Z1			
+Toti	ONT	V1_V9	EMU		EMUdb	Z	2	Toti_ONT_V1_V9_EMU_EMUdb_Z_2	Z2			
+Toti	ONT	V1_V9	EMU		EMUdb	Z	3	Toti_ONT_V1_V9_EMU_EMUdb_Z_3	Z3			
+Toti	ONT	V1_V9	EMU		EMUdb	Z	4	Toti_ONT_V1_V9_EMU_EMUdb_Z_4	Z4			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	I	1	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	I	2	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	I	3	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	I	4	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	ONT	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_ONT_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	I	1	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_I_1	I1			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	I	2	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_I_2	I2			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	I	3	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_I_3	I3			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	I	4	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_I_4	I4			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	MN	1	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_MN_1	MN1			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	MN	2	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_MN_2	MN2			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	MN	3	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_MN_3	MN3			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	MN	4	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_MN_4	MN4			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	Z	1	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_Z_1	Z1			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	Z	2	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_Z_2	Z2			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	Z	3	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_Z_3	Z3			
+Toti	ONT	V1_V9	minitax	BestAln	EMUdb	Z	4	Toti_ONT_V1_V9_minitax_BestAln_EMUdb_Z_4	Z4			
+Toti	PacBio	V1_V9	EMU		EMUdb	I	1	Toti_PacBio_V1_V9_EMU_EMUdb_I_1	I1			
+Toti	PacBio	V1_V9	EMU		EMUdb	I	2	Toti_PacBio_V1_V9_EMU_EMUdb_I_2	I2			
+Toti	PacBio	V1_V9	EMU		EMUdb	I	3	Toti_PacBio_V1_V9_EMU_EMUdb_I_3	I3			
+Toti	PacBio	V1_V9	EMU		EMUdb	I	4	Toti_PacBio_V1_V9_EMU_EMUdb_I_4	I4			
+Toti	PacBio	V1_V9	EMU		EMUdb	MN	1	Toti_PacBio_V1_V9_EMU_EMUdb_MN_1	MN1			
+Toti	PacBio	V1_V9	EMU		EMUdb	MN	2	Toti_PacBio_V1_V9_EMU_EMUdb_MN_2	MN2			
+Toti	PacBio	V1_V9	EMU		EMUdb	MN	3	Toti_PacBio_V1_V9_EMU_EMUdb_MN_3	MN3			
+Toti	PacBio	V1_V9	EMU		EMUdb	MN	4	Toti_PacBio_V1_V9_EMU_EMUdb_MN_4	MN4			
+Toti	PacBio	V1_V9	EMU		EMUdb	Z	1	Toti_PacBio_V1_V9_EMU_EMUdb_Z_1	Z1			
+Toti	PacBio	V1_V9	EMU		EMUdb	Z	2	Toti_PacBio_V1_V9_EMU_EMUdb_Z_2	Z2			
+Toti	PacBio	V1_V9	EMU		EMUdb	Z	3	Toti_PacBio_V1_V9_EMU_EMUdb_Z_3	Z3			
+Toti	PacBio	V1_V9	EMU		EMUdb	Z	4	Toti_PacBio_V1_V9_EMU_EMUdb_Z_4	Z4			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	I	1	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_I_1	I1			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	I	2	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_I_2	I2			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	I	3	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_I_3	I3			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	I	4	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_I_4	I4			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	1	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_1	MN1			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	2	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_2	MN2			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	3	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_3	MN3			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	MN	4	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_MN_4	MN4			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	1	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_1	Z1			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	2	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_2	Z2			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	3	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_3	Z3			
+Toti	PacBio	V1_V9	minitax	BestAln	all_NCBI_genomes	Z	4	Toti_PacBio_V1_V9_minitax_BestAln_all_NCBI_genomes_Z_4	Z4			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	I	1	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_I_1	I1			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	I	2	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_I_2	I2			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	I	3	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_I_3	I3			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	I	4	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_I_4	I4			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	MN	1	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_MN_1	MN1			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	MN	2	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_MN_2	MN2			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	MN	3	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_MN_3	MN3			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	MN	4	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_MN_4	MN4			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	Z	1	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_Z_1	Z1			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	Z	2	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_Z_2	Z2			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	Z	3	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_Z_3	Z3			
+Toti	PacBio	V1_V9	minitax	BestAln	EMUdb	Z	4	Toti_PacBio_V1_V9_minitax_BestAln_EMUdb_Z_4	Z4			
